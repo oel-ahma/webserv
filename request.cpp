@@ -5,8 +5,9 @@ Request::Request(std::string const &str) :
 {
     initHeaders();
     initMethodList();
-    //print_map(this->_headers);
+    print_map(this->_headers);
     parsing(str);
+    print_map(this->_headers);
     if (this->_statusCode != 200)
         std::cerr << "Parsing Error : " << this->_statusCode << std::endl;
 }
@@ -14,10 +15,20 @@ Request::Request(std::string const &str) :
 void Request::parsing(std::string const &str)
 {
     std::string		line;
-	size_t			j;
+	std::string     key;
+    std::string     value;
+    size_t			j;
     size_t          i(0);
 
     parseFirstLine(gnl(str, i));
+    while(((line = gnl(str, i) )!= "") && _statusCode != 400)
+    {
+        j = line.find_first_of(':');
+        key = line.substr(0, j);
+        value = line.substr(j + 1, line.size());
+        if (_headers.count(key))
+            _headers[key] = value; 
+    }
 
 }
 
@@ -28,12 +39,13 @@ std::string Request::gnl(std::string const &str, size_t &i)
 
     if (i == std::string::npos)
         return "";
-    j = str.find_first_of('\n');
-    ret = str.substr(i, j);
+    ret = str.substr(i, str.size());
+    j = ret.find_first_of('\n');
+    ret = ret.substr(0, j);
     //need to fix 'cuz didn't took '\r' in consideration
     //	if (ret[ret.size() - 1] == '\r')
     //		pop(ret);
-	i = (j == std::string::npos ? j : j + 1);
+	i = (j == std::string::npos ? j : j + i + 1);
     return ret;
 }
 
@@ -76,9 +88,16 @@ void    Request::parseFirstLine(std::string const &str)
         return ;
     }
     _path.assign(line, 0, i);
+    //GET QUERY
+    j = _path.find_first_of('?');
+    if (j != std::string::npos)
+    {
+        _query = _path.substr(j + 1, _path.size());
+        _path = _path.substr(0, j);
+    }
     //GET VERSION
     line = line.substr(i + 1, line.size());
-    if(line.compare(0, 8, "HTTP/1.1") == 0 || line.compare(0, 8, "HTTP/1.0") == 0 || line.size() != 8)
+    if ((line.compare(0, 8, "HTTP/1.1") == 0 || line.compare(0, 8, "HTTP/1.0") == 0 ) && line.size() == 8)
         _version.assign(line, 0, i);
     else
     {
@@ -87,7 +106,6 @@ void    Request::parseFirstLine(std::string const &str)
         return ;
     }
 }
-
 
 void Request::initMethodList()
 {
@@ -134,6 +152,9 @@ Request::~Request(){}
 
 Request::Request(Request const &other)
 {
+    this->_method = other._method;
+    this->_path = other._path;
+    this->_version = other._version;
     this->_headers = other._headers;
     this->_body = other._body;
     this->_statusCode = other._statusCode;
