@@ -5,7 +5,6 @@ Request::Request(std::string const &str) :
 {
     initHeaders();
     initMethodList();
-    print_map(this->_headers);
     parsing(str);
     print_map(this->_headers);
     if (this->_statusCode != 200)
@@ -25,7 +24,7 @@ void Request::parsing(std::string const &str)
     {
         j = line.find_first_of(':');
         key = line.substr(0, j);
-        value = line.substr(j + 1, line.size());
+        value = line.substr(j + 1, std::string::npos);
         if (_headers.count(key))
             _headers[key] = value; 
     }
@@ -39,12 +38,11 @@ std::string Request::gnl(std::string const &str, size_t &i)
 
     if (i == std::string::npos)
         return "";
-    ret = str.substr(i, str.size());
+    ret = str.substr(i, std::string::npos);
     j = ret.find_first_of('\n');
     ret = ret.substr(0, j);
-    //need to fix 'cuz didn't took '\r' in consideration
-    //	if (ret[ret.size() - 1] == '\r')
-    //		pop(ret);
+    if (ret[ret.size() - 1] == '\r')
+        ret.resize(ret.size() - 1);
 	i = (j == std::string::npos ? j : j + i + 1);
     return ret;
 }
@@ -72,7 +70,7 @@ void    Request::parseFirstLine(std::string const &str)
         return ;
     }
     //GET PATH
-    line = str.substr(i + 1, str.size());
+    line = str.substr(i + 1, std::string::npos);
     i = line.find_first_not_of(' ');
     if (i == std::string::npos)
     {
@@ -92,11 +90,11 @@ void    Request::parseFirstLine(std::string const &str)
     j = _path.find_first_of('?');
     if (j != std::string::npos)
     {
-        _query = _path.substr(j + 1, _path.size());
+        _query = _path.substr(j + 1, std::string::npos);
         _path = _path.substr(0, j);
     }
     //GET VERSION
-    line = line.substr(i + 1, line.size());
+    line = line.substr(i + 1, std::string::npos);
     if ((line.compare(0, 8, "HTTP/1.1") == 0 || line.compare(0, 8, "HTTP/1.0") == 0 ) && line.size() == 8)
         _version.assign(line, 0, i);
     else
@@ -154,7 +152,9 @@ Request::Request(Request const &other)
 {
     this->_method = other._method;
     this->_path = other._path;
+    this->_query = other._query;
     this->_version = other._version;
+    this->_methodList = other._methodList;
     this->_headers = other._headers;
     this->_body = other._body;
     this->_statusCode = other._statusCode;
@@ -163,6 +163,11 @@ Request::Request(Request const &other)
 
 Request &Request::operator=(Request const &rhs)
 {
+    this->_method = rhs._method;
+    this->_path = rhs._path;
+    this->_query = rhs._query;
+    this->_version = rhs._version;
+    this->_methodList = rhs._methodList;
     this->_headers = rhs._headers;
     this->_body = rhs._body;
     this->_statusCode = rhs._statusCode;
@@ -172,15 +177,8 @@ Request &Request::operator=(Request const &rhs)
 
 int main(int ac, char **av)
 {
-
-    if (ac != 2)
-    {
-        std::cout << "Not Enough Arguments !" << std::endl;
-        return 1;
-    }
-    std::ifstream t(av[1]);
-    std::string buff((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-    //std::cout << buff << "\n---------------------------\n";
-    Request request(buff);
+    std::string http_request("GET /home.html?test=test HTTP/1.1\r\nHost: developer.mozilla.org\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:50.0) Gecko/20100101 Firefox/50.0\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Language: en-US,en;q=0.5\r\nAccept-Encoding: gzip, deflate, br\r\nReferer: https://developer.mozilla.org/testpage.html\r\nConnection: keep-alive\r\nUpgrade-Insecure-Requests: 1\r\nIf-Modified-Since: Mon, 18 Jul 2016 02:36:04 GMT\r\nIf-None-Match: \"c561c68d0ba92bbeb8b0fff2a9199f722e3a621a\"\r\nCache-Control: max-age=0\r\n\r\n");
+    std::cout << http_request << std::endl;
+    Request request(http_request);
     return 0;
 }

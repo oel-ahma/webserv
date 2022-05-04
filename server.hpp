@@ -4,6 +4,11 @@
 #include <iostream> // For cout
 #include <unistd.h> // For read
 #include <cstring>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <map>
 
 class Server
 {
