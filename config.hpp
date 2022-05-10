@@ -66,8 +66,10 @@ class Config
 
         std::map<std::string, Config>   _location;
         //Parsing Members
-        ServerMap                   _serverParsedMap;
-        ServerMap                   _locationParsedMap;
+        ServerMap                       _serverParsedMap;
+        ServerMap                       _locationParsedMap;
+
+        std::vector<Config>             _servers;
 
 };
 

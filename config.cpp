@@ -91,8 +91,7 @@ void Config::initLocationParsedMap()
 
 int Config::directiveArgsNumber(size_t const index, std::vector<std::string> const configFile, std::string *directive, ServerMap ParsedMap)
 {
-    size_t              argsNbr = 0;
-    ServerMap::iterator iter;
+    size_t              argsNbr(0);
 
     if (ParsedMap.count(configFile[index]))
     {
@@ -110,9 +109,9 @@ int Config::parseConfigFile(std::vector<std::string> const configFile)
     size_t                      i(0);
     int                         argsNbr;
     std::vector<std::string>    args;
-    ServerMap::iterator         iter;
     std::string                 directive("");
 
+    Config server;
     if (configFile[i++] == "server")
     {
         if (configFile[i++] == "{")
@@ -129,7 +128,7 @@ int Config::parseConfigFile(std::vector<std::string> const configFile)
                     }
                     for (; argsNbr > 0; argsNbr--)
                         args.push_back(configFile[++i]);
-                    (this->*Config::_serverParsedMap[directive])(args);
+                    (server.*Config::_serverParsedMap[directive])(args);
                     args.clear();
                 }
                 else
@@ -155,11 +154,13 @@ int Config::parseConfigFile(std::vector<std::string> const configFile)
                             args.clear();
                         }
                     }
-                    _location[locationName] = location;
+                    server._location[locationName] = location;
                 }
             }
             // if (i != configFile.size())
             //     std::cout << "index: " << i << " | " << configFile[i] << std::endl;
+            this->_servers.push_back(server);
+            std::cout << server._clientMaxBodySize << "\n";
         }
         else
         {
@@ -292,38 +293,42 @@ const char		*Config::InvalidArgsException::what()
 }
 
 std::ostream	&operator<<(std::ostream &out, Config const &server) {
-	out << "server_name: ";
-	for (size_t i = 0; i < server._serverName.size(); i++) {
-		out << server._serverName[i];
-		if (i != server._serverName.size() - 1)
-			out << " ";
-	}
-	out << "Listen: \"--------\"" << std::endl;
-	out << "root: " << server._root << std::endl;
-	out << std::endl;
-    out << "error_page: \n";
-	for (std::map<int, std::string>::const_iterator i = server._errorPages.begin(); i != server._errorPages.end(); i++) {
-		out <<  i->first << " | " << i->second << std::endl;
-	}
-    out << std::endl;
-	out << "client_body_buffer_size: " << server._clientMaxBodySize << std::endl;
-	out << "cgi_path:" << server._cgiPath << std::endl;
-	out << "cgi_Extension:	" << server._cgiExtension << std::endl;
-	out << "allowed methods:";
-	for (std::vector<std::string>::const_iterator i = server._allowedMethods.begin(); i != server._allowedMethods.end(); i++)
-		out << " " << *i;
-	out << std::endl;
-	out << "autoindex: " << server._autoindex << std::endl;
-	out << "index: ";
-	for (std::vector<std::string>::const_iterator i = server._index.begin(); i != server._index.end(); i++)
-		out << *i << " ";
-	out << std::endl;
-	out << "alias: " << server._alias << std::endl;
-	out << "locations: ";
-	for (std::map<std::string, Config>::const_iterator i = server._location.begin(); i != server._location.end(); i++) {
-		out <<  "[" << i->first << "] \n" << i->second << std::endl;
-	}
-    out << std::endl;
+	for (std::vector<Config>::const_iterator it = server._servers.begin(); it != server._servers.end(); it++)
+    {
+        out << "server_name: ";
+        for (size_t i = 0; i < it->_serverName.size(); i++) {
+            out << it->_serverName[i];
+            if (i != it->_serverName.size() - 1)
+                out << " ";
+        }
+        out << std::endl;
+        out << "Listen: \"--------\"" << std::endl;
+        out << "root: " << it->_root << std::endl;
+        out << std::endl;
+        out << "error_page: \n";
+        for (std::map<int, std::string>::const_iterator i = it->_errorPages.begin(); i != it->_errorPages.end(); i++) {
+            out <<  i->first << " | " << i->second << std::endl;
+        }
+        out << std::endl;
+        out << "client_body_buffer_size: " << it->_clientMaxBodySize << std::endl;
+        out << "cgi_path:" << it->_cgiPath << std::endl;
+        out << "cgi_Extension:	" << it->_cgiExtension << std::endl;
+        out << "allowed methods:";
+        for (std::vector<std::string>::const_iterator i = it->_allowedMethods.begin(); i != it->_allowedMethods.end(); i++)
+            out << " " << *i;
+        out << std::endl;
+        out << "autoindex: " << it->_autoindex << std::endl;
+        out << "index: ";
+        for (std::vector<std::string>::const_iterator i = it->_index.begin(); i != it->_index.end(); i++)
+            out << *i << " ";
+        out << std::endl;
+        out << "alias: " << it->_alias << std::endl;
+        out << "locations: ";
+        for (std::map<std::string, Config>::const_iterator i = it->_location.begin(); i != it->_location.end(); i++) {
+            out <<  "[" << i->first << "] \n" << i->second << std::endl;
+        }
+        out << std::endl;
+    }
     return out;
 }
 

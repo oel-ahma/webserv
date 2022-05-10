@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include "config.hpp"
 
 class Server
 {
@@ -38,6 +39,7 @@ class Server
     private:
         int _sockfd;
         sockaddr_in _sockaddr;
+
 };
 
 #endif
