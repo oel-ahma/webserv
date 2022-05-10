@@ -1,3 +1,6 @@
+#ifndef _REQUEST_HPP
+# define _REQUEST_HPP
+
 #include <sys/socket.h> // For socket functions
 #include <netinet/in.h> // For sockaddr_in
 #include <cstdlib> // For exit() and EXIT_FAILURE
@@ -9,6 +12,13 @@
 #include <string>
 #include <vector>
 #include <map>
+
+#include <cstdlib>
+
+//C fcts
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 class Server
 {
@@ -29,3 +39,5 @@ class Server
         int _sockfd;
         sockaddr_in _sockaddr;
 };
+
+#endif

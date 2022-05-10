@@ -2,6 +2,10 @@
 // >> Parse it 
 // >> Set All the methods and Get header fields values.
 
+#ifndef _REQUEST_HPP
+# define _REQUEST_HPP
+
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -57,3 +61,5 @@ void print_map(std::map<K, V> const &m)
         std::cout << (*it).first << ": " << (*it).second << "\n";
     }
 }
+
+#endif
