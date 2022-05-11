@@ -1,5 +1,5 @@
-#ifndef _REQUEST_HPP
-# define _REQUEST_HPP
+#ifndef _SERVER_HPP
+# define _SERVER_HPP
 
 #include <sys/socket.h> // For socket functions
 #include <netinet/in.h> // For sockaddr_in
@@ -12,14 +12,15 @@
 #include <string>
 #include <vector>
 #include <map>
-
 #include <cstdlib>
 
 //C fcts
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+
 #include "config.hpp"
+#include "request.hpp"
 
 class Server
 {
@@ -37,8 +38,8 @@ class Server
         void    close(int socket);
 
     private:
-        int _sockfd;
-        sockaddr_in _sockaddr;
+        int                 _sockfd;
+        sockaddr_in         _sockaddr;
 
 };
 

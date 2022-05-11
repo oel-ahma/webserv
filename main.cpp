@@ -1,21 +1,22 @@
-#include <sys/socket.h> // For socket functions
-#include <netinet/in.h> // For sockaddr_in
-#include <cstdlib> // For exit() and EXIT_FAILURE
-#include <iostream> // For cout
-#include <unistd.h> // For read
-#include "server.hpp"
+#include "webserv.hpp"
+#include "config.hpp"
 
-
-int main() 
+int main(int ac, char **av) 
 {
-  Server serv;
-
-  if (serv.setup_socket() == 0)
-  {
-    long socket = serv.accept();
-    serv.read(socket);
-    serv.send(socket);
-    serv.close(socket);
-  }
-  return 0;
+	Config 						config;
+	std::vector<std::string>	configFile;
+  		
+	if (ac != 2)
+  	{
+		std::cerr << "Not Enough Argument!" << std::endl;
+    	return 1;
+  	}
+	configFile = config.readConfigFile(av[1]);
+	try {
+		config.parse(configFile);
+	} catch (std::exception &e) {
+		std::cerr << e.what() << std::endl;
+	}
+	std::cout << config;
+	return 0;
 }

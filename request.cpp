@@ -174,11 +174,3 @@ Request &Request::operator=(Request const &rhs)
     this->_rawString = rhs._rawString;
     return *this;
 }
-
-int main(int ac, char **av)
-{
-    std::string http_request("GET /home.html?test=test HTTP/1.1\r\nHost: developer.mozilla.org\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:50.0) Gecko/20100101 Firefox/50.0\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Language: en-US,en;q=0.5\r\nAccept-Encoding: gzip, deflate, br\r\nReferer: https://developer.mozilla.org/testpage.html\r\nConnection: keep-alive\r\nUpgrade-Insecure-Requests: 1\r\nIf-Modified-Since: Mon, 18 Jul 2016 02:36:04 GMT\r\nIf-None-Match: \"c561c68d0ba92bbeb8b0fff2a9199f722e3a621a\"\r\nCache-Control: max-age=0\r\n\r\n");
-    std::cout << http_request << std::endl;
-    Request request(http_request);
-    return 0;
-}
