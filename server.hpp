@@ -31,11 +31,15 @@ class Server
 
         Server &operator=(Server const &other);
 
-        int     setup_socket();
+        int     setup();
         long    accept();
         void    read(int socket);
         void    send(int socket);
         void    close(int socket);
+		
+		//GETTERS
+		int		getSockFd();
+
 
     private:
         int                 _sockfd;

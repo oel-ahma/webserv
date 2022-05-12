@@ -1,29 +1,28 @@
 #ifndef _WEBSERV_HPP
 # define _WEBSERV_HPP
 
-#include <sys/socket.h> // For socket functions
-#include <netinet/in.h> // For sockaddr_in
-#include <cstdlib> // For exit() and EXIT_FAILURE
-#include <iostream> // For cout
-#include <unistd.h> // For read
-#include <cstring>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <map>
-#include <cstdlib>
+#include "tools.hpp"
+#include "server.hpp"
 
+class Server;
 
-typedef struct s_listen
+class Webserv
 {
-	size_t port;
-	std::string host;
-}	t_listen;
+	public:
+		Webserv();
+		Webserv(Webserv const &other);
+		~Webserv();
 
+		Webserv &operator=(Webserv const &other);
+	
+		int 	setup();
+		int		init(std::string &fileName);
 
-bool isNumber(const std::string& s);
-template<typename T>
-void print_vector(std::vector<T> const &vec);
+	private:
+		Config					_config;
+		std::map<int, Server>	_servers;
+		int						_fd;
+};
+
 
 #endif

@@ -4,7 +4,7 @@
 
 # define ServerMap std::map<std::string, void (ConfigParse::*)(std::vector<std::string>)>
 
-#include "webserv.hpp"
+#include "tools.hpp"
 
 class ConfigParse
 {
@@ -46,10 +46,24 @@ class ConfigParse
         void                        addUploadEnable(std::vector<std::string> args);
         void                        addUploadPath(std::vector<std::string> args);
 
+		//Getters
+        std::vector<t_listen>           getListen();
+        std::string                     getRoot();
+        std::vector<std::string>        getServerName();
+        std::map<int, std::string>      getErrorPages();
+        long                            getClientMaxBodySize();
+        std::vector<std::string>        getAllowedMethods();
+        std::vector<std::string>        getIndex();
+        bool                            getAutoindex();
+        bool                            getUploadEnable();
+        std::string                     getUploadPath();
+        std::string                     getCgiPath(); //it's not the right type of variable
+        std::string                     getCgiExtension(); //it's not the right type of variable
+        std::string                     getAlias();		
 
         //Directives Members
         
-        std::vector<t_listen>           _listen; //it's not the right type of variable
+        std::vector<t_listen>           _listen;
         std::string                     _root;
         std::vector<std::string>        _serverName;
         std::map<int, std::string>      _errorPages;

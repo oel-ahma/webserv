@@ -1,6 +1,6 @@
 #include "server.hpp"
 
-int Server::setup_socket()
+int Server::setup()
 { 
     _sockfd = socket(AF_INET, SOCK_STREAM, 0); // AF_INET : Internet Protocol v4 addresses ; SOCK_STREAM : TCP not UDP
     if (_sockfd == -1) 
@@ -14,7 +14,7 @@ int Server::setup_socket()
     _sockaddr.sin_addr.s_addr = INADDR_ANY; // INADDR_ANY need to be changed to a more general variable 
     _sockaddr.sin_port = htons(9898); // Same here for 9898 and need to code htons
     
-    if (bind(_sockfd, (struct sockaddr*)&_sockaddr, sizeof(sockaddr)) < 0) 
+    if (bind(s, (struct sockaddr*)&_sockaddr, sizeof(sockaddr)) < 0) 
     {
         std::cerr << "Failed to bind to port 9898." << std::endl;
         return -1;
@@ -82,3 +82,5 @@ Server & Server::operator=(Server const &other)
     _sockaddr = other._sockaddr;
     return (*this); 
 }
+
+int Server::getSockFd() { return _sockfd; }

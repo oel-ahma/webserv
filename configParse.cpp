@@ -1,4 +1,4 @@
-#include "webserv.hpp"
+#include "tools.hpp"
 
 #include "configParse.hpp"
 
@@ -259,7 +259,7 @@ std::ostream	&operator<<(std::ostream &out, ConfigParse const &server)
     return out;
 }
 
-ConfigParse::ConfigParse()
+ConfigParse::ConfigParse() : _clientMaxBodySize(0), _root(""), _autoindex(false), _uploadEnable(false)
 {
     initServerParsedMap();
     initLocationParsedMap();
@@ -301,3 +301,17 @@ ConfigParse &ConfigParse::operator=(ConfigParse const &other)
 	}
 	return *this;
 }
+
+std::vector<t_listen>           ConfigParse::getListen() { return _listen; }
+std::string                     ConfigParse::getRoot() { return _root; }
+std::vector<std::string>        ConfigParse::getServerName() { return _serverName; }
+std::map<int, std::string>      ConfigParse::getErrorPages() { return _errorPages; }
+long                            ConfigParse::getClientMaxBodySize() { return _clientMaxBodySize; }
+std::vector<std::string>        ConfigParse::getAllowedMethods() { return _allowedMethods; }
+std::vector<std::string>        ConfigParse::getIndex() { return _index; }
+bool                            ConfigParse::getAutoindex() { return _autoindex; }
+bool                            ConfigParse::getUploadEnable() { return _uploadEnable; }
+std::string                     ConfigParse::getUploadPath(){ return _uploadPath; }
+std::string                     ConfigParse::getCgiPath() { return _cgiPath; } //it's not the right type of variable
+std::string                     ConfigParse::getCgiExtension() {return _cgiExtension; } //it's not the right type of variable
+std::string                     ConfigParse::getAlias() { return _alias; }
