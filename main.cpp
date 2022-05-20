@@ -18,5 +18,11 @@ int main(int ac, char **av)
 		std::cerr << e.what() << std::endl;
 	}
 	std::cout << config;
+	/*
+		while (true) { //le server tourne en boucle
+			//fonction routine de Server.cpp
+			//TODO: attention aux charge du cpu, utiliser un usleep() ou autre solution
+		}
+	*/
 	return 0;
 }
