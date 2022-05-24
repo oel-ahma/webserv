@@ -4,10 +4,11 @@
 /*                                CONSTRUCTORS                                */
 /* ************************************************************************** */
 
-Server::Server() : addrlen(sizeof(address)), PORT(8080) {
+Server::Server(Config const &conf) {
+	//TODO:
 }
 
-Server::Server(Server const &other) : addrlen(sizeof(address)), PORT(8080) {
+Server::Server(Server const &other) {
 	*this = other;
 }
 
@@ -23,8 +24,6 @@ Server::~Server() {}
 
 Server & Server::operator=(Server const &other) {
 	this->socket_server = other.socket_server;
-	this->address = other.address;
-	this->addrlen = other.addrlen;
 	this->PORT = other.PORT;
 	this->fds = other.fds;
 	return (*this);
@@ -42,113 +41,109 @@ int		Server::get_socket_server() const {
 	return(this->socket_server);
 }
 
-struct sockaddr_in*		Server::get_addr() {
-	return(&this->address);
-}
-
-socklen_t*		Server::get_addrlen() const {
-	return((socklen_t*)&this->addrlen);
-}
-
 /* ************************************************************************** */
 /*                              MEMBER FUNCTION                               */
 /* ************************************************************************** */
 
-bool	Server::set_server() {
-	if (this->set_socket() == false || this->bind_server() == false
-		|| this->listen_server() == false)
-		return(false);
-	return (true);
+void	Server::set_server() {
+	this->set_socket();
+	this->bind_server();
+	this->listen_server();
+	//Message pour annoncer la creation du socket server ?
 }
 
-bool	Server::set_socket() {
+void	Server::set_socket() {
 	//creer le socket du server et le stocke dans un int
-	if ((this->socket_server = socket(PF_INET, SOCK_STREAM, 0)) == ERROR) {
-		std::cerr << "Error: " << strerror(errno) << std::endl;
-		return(false);
-	}
+	if ((this->socket_server = socket(PF_INET, SOCK_STREAM, 0)) == ERROR)
+		throw strerror(errno);
 	//Ajoute des options au socket
 	int optval = 1;
-	if (setsockopt(this->socket_server, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &optval, sizeof(optval)) == ERROR) {
-		std::cerr << "Error: " << strerror(errno) << std::endl;
-		return(false);
-	}
-	return (true);
+	if (setsockopt(this->socket_server, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &optval, sizeof(optval)) == ERROR)
+		throw strerror(errno);
 }
 
-bool	Server::bind_server() {
+void	Server::bind_server() {
 	//set la structure sockaddr_in pour bind le server
-	memset((char *)&this->address, 0, sizeof(this->address));
-	this->address.sin_family = PF_INET;
-	this->address.sin_port = htons(this->PORT);
-	this->address.sin_addr.s_addr = htonl(INADDR_ANY);
-	if (bind(this->socket_server, (struct sockaddr *)&this->address, sizeof(this->address)) == ERROR) {
-		std::cerr << "Error: " << strerror(errno) << std::endl;
-		return(false);
-	}
-	return (true);
+	struct sockaddr_in addrServer;
+
+	memset((char *)&addrServer, 0, sizeof(addrServer));
+	addrServer.sin_family = PF_INET;
+	addrServer.sin_port = htons(this->PORT);
+	addrServer.sin_addr.s_addr = htonl(INADDR_ANY);
+	if (bind(this->socket_server, (struct sockaddr *)&addrServer, (socklen_t)sizeof(addrServer)) == ERROR)
+		throw strerror(errno);
 }
 
-bool	Server::listen_server() {
-	if (listen(this->socket_server, BACKLOG) == ERROR) {
-		std::cerr << "Error: " << strerror(errno) << std::endl;
-		return (false);
-	}
+void	Server::listen_server() {
+	if (listen(this->socket_server, BACKLOG) == ERROR)
+		throw strerror(errno);
 	//Creer une structure pollfd pour y ajouter le socket du server
 	struct pollfd fd;
 	fd.fd = socket_server;
-	fd.events = POLLIN;//TODO: not sur
+	fd.events = POLLIN;
 	//Ajout du socket_server comme premier element du vector
 	fds.push_back(fd);
-	return (true);
+}
+
+// Lorsqu'un client se connecte au server, il faut set la structure pollfd pour ensuite l'ajouter au vector
+void	Server::add_client() {
+	struct pollfd pfd;
+	struct sockaddr_in addrClient;
+
+	if ((pfd.fd = ::accept(this->socket_server, (struct sockaddr *)&addrClient, (socklen_t*)sizeof(addrClient))) == ERROR)
+		throw strerror(errno);
+	pfd.events = POLLIN;
+	fds.push_back(pfd);
+	//Message pour annoncer une nouvelle connexion client ?
+}
+
+void Server::recv(int socket) { //TODO:
+	//TODO: buffer dans la classe server
+	char buffer[100];
+
+	if (long bytesRead = ::recv(socket, buffer, 100, 0) == ERROR)
+		throw strerror(errno);
+	std::cout << "The message was: " << buffer;
+}
+
+void Server::send(int socket) { //TODO:
+	// Send a message to the connection
+	std::string response = "Good talking to you\n";
+	if (::send(socket, response.c_str(), response.size(), 0) == ERROR)
+		throw strerror(errno);
+}
+
+void	Server::routine() {
+	// exectuer une action par socket seulement pour ne pas étre bloqué
+	if (poll(&fds[0], fds.size(), 0) != ERROR) {
+		// check sur fds[0] si une connection se fait sur le server: càd nouveau client
+		if (fds[0].revents & POLLIN)
+			add_client();
+		// On itère sur chaque socket
+		for (std::vector<struct pollfd>::iterator it = this->fds.begin() + 1; it != this->fds.end(); it++) {
+			//TODO: il faut soit recevoir la requete, soit executer une requete faite au prealable
+			//TODO: si le buffer n'est pas vide, alors une commande est a executer
+			//...
+			// Client qui envoi une requete
+			if (it->revents & POLLIN) {
+				this->send(it->fd);
+			}
+			// Client qui attend une réponse à sa requete
+			else if (it->revents & POLLOUT) {
+				this->recv(it->fd);
+			}
+			//TODO: Deco client ?
+		}
+	}
+	else
+		throw strerror(errno);
 }
 
 /*
-void	Server::routine() {
-	//TODO: check sur fds[0] si une connection se fait sur le server: càd nouveau client
-	//TODO: iterer sur le vector pour chaque socket
-	//TODO: exectuer une action par socket seulement pour ne pas étre bloqué
-}
-
-//TODO:Faire une boucle avec toute ses fonctions dans routine.
-//TODO:Une action par tour de boucle pour chaque fd.
-long Server::accept()
-{
-    long socket = ::accept(socket_server, NULL, NULL);
-
-    if (socket < 0)
-        std::cerr << "Error: " << strerror(errno) << std::endl; // Still thing to add to this method in case of connection > 0
-    return socket;
-}
-
-void Server::read(int socket)
-{
-  char buffer[100];
-  long bytesRead = ::read(socket, buffer, 100); // change read with recv
-  std::cout << "The message was: " << buffer;
-}
-
-void Server::send(int socket)
-{
-  // Send a message to the connection
-  std::string response = "Good talking to you\n";
-  ::send(socket, response.c_str(), response.size(), 0);
-}
-*/
-
-// Close the connections TODO: fct cllose() autorisée ??? Elle n'est pas mentionné dans le sujet, dans les fonctions externe autorisée
+// Close the connections TODO: fct close() autorisée ??? Elle n'est pas mentionné dans le sujet, dans les fonctions externe autorisée
 void Server::close(int socket)
 {
     ::close(socket);
     ::close(socket_server);
 }
-//TODO:lorsqu'un client se connecte au server, il faut set la structure pollfd pour ensuite l'ajouter au vector
-void	Server::add_client() {//TODO:
-	//creer une structure pollfd pour y ajouter le socket client
-	struct pollfd fd;
-
-	fd.fd = socket_server;
-	fd.events = POLLIN;
-	//Ajout du socket-client au vector
-	fds.push_back(fd);
-}
+*/

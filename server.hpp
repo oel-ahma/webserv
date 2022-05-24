@@ -29,39 +29,35 @@
 
 class Server
 {
-    public:
-        Server();
-        Server(Server const &other);
-        ~Server();
+	public:
+		Server(Config const &conf);
+		Server(Server const &other);
+		~Server();
 
-        Server &operator=(Server const &other);
+		Server &operator=(Server const &other);
 
-		bool	set_server();
-		void	add_client();
-		long	accept();
-		void	read(int socket);
-		void	send(int socket);
-		void	close(int socket);
+		void	set_server();
 		void	routine();
-		
-		
+
 		//GETTERS
 		int						get_socket_server() const;
 		int						get_port() const;
-		struct sockaddr_in*		get_addr();
-		socklen_t*				get_addrlen() const;
-
 
 	private:
-		int							socket_server;
-		struct sockaddr_in			address;
-		socklen_t					addrlen;
+		int							socket_server; //const ?
 		uint32_t					PORT;//TODO: le port restera toujours le même ? const ?
 		std::vector<struct pollfd>	fds;
+		//TODO: buffer pour stocket les send()/recv ?
+		//TODO: iterator pour iterer sur le tab de buffer ?
 
-		bool	set_socket();
-		bool	bind_server();
-		bool	listen_server();
+		Server();
+		void	set_socket();
+		void	bind_server();
+		void	listen_server();
+		void	add_client();
+		void	recv(int socket);
+		void	send(int socket);
+		// void	close(int socket);
 };
 
 #endif
