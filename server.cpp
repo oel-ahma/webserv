@@ -135,7 +135,6 @@ void	Server::treat_Request(int client) {
 	//Request 	client_request(client_buff[client]);
 	
 	//Just for debug
-	this->client_buff[client].clear();
 	this->response_buff[client] = "HTTP/1.1 201 OK\r\nDate: Sun, 18 Oct 2012 10:36:20 GMT\r\n\r\n<!DOCTYPE html><html><head><title>Example</title></head><body><p>This is an example of a simple HTML page with one paragraph.</p></body></html>\r\n";
 	
 	// 
