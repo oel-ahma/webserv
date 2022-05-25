@@ -42,8 +42,10 @@ std::string Request::gnl(std::string const &str, size_t &i)
     j = ret.find_first_of('\n');
     ret = ret.substr(0, j);
     if (ret[ret.size() - 1] == '\r')
+	{
         ret.resize(ret.size() - 1);
-	i = (j == std::string::npos ? j : j + i + 1);
+	}
+	i = ((j == std::string::npos) ? j : j + i + 1);
     return ret;
 }
 
@@ -108,10 +110,11 @@ void    Request::parseFirstLine(std::string const &str)
 void Request::initMethodList()
 {
     _methodList.push_back("GET");
-	_methodList.push_back("HEAD");
-	_methodList.push_back("POST");
-	_methodList.push_back("PUT");
 	_methodList.push_back("DELETE");
+	_methodList.push_back("POST");
+	// Optional Methods
+	_methodList.push_back("HEAD");
+	_methodList.push_back("PUT");
 	_methodList.push_back("OPTIONS");
 	_methodList.push_back("TRACE" );
 

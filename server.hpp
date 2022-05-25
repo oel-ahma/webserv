@@ -2,6 +2,7 @@
 # define _SERVER_HPP
 
 #define ERROR -1
+#define BUFF 1024
 #define BACKLOG 1000 //TODO: definir une taille logique
 
 #include <sys/socket.h> // For socket functions
@@ -30,6 +31,7 @@
 class Server
 {
 	public:
+		Server();
 		Server(Config const &conf);
 		Server(Server const &other);
 		~Server();
@@ -44,20 +46,23 @@ class Server
 		int						get_port() const;
 
 	private:
-		int							socket_server; //const ?
-		uint32_t					PORT;//TODO: le port restera toujours le même ? const ?
-		std::vector<struct pollfd>	fds;
-		//TODO: buffer pour stocket les send()/recv ?
-		//TODO: iterator pour iterer sur le tab de buffer ?
 
-		Server();
+		struct sockaddr_in addrClient;
+
+		int							socket_server; //const ?
+		uint32_t					PORT = 8080;//TODO: le port restera toujours le même ? const ?
+		std::vector<struct pollfd>	fds;
+		std::map<int, std::string>	client_buff;	//TODO: Class request ? mettre le buffer CHAR dans la class request
+		std::map<int, std::string>	response_buff;	//TODO: Class response ? mettre le buffer CHAR dans la class response
+
 		void	set_socket();
 		void	bind_server();
 		void	listen_server();
 		void	add_client();
+		void	treat_Request(int client);
 		void	recv(int socket);
 		void	send(int socket);
-		// void	close(int socket);
+		void	close(int socket);
 };
 
 #endif
