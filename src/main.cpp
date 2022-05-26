@@ -1,6 +1,7 @@
-#include "tools.hpp"
-#include "config.hpp"
-#include "server.hpp"
+#include "../header/header.hpp" //TODO:
+#include "../header/server.hpp" //TODO:
+// #include "server.hpp"
+// #include "header.hpp"
 
 int main(int ac, char **av) 
 {

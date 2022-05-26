@@ -2,14 +2,14 @@ I			:=	header/
 O			:=	obj/
 
 NAME		:=	webserv
-SRC			:=	$(wildcard *.cpp /*.cpp)
+SRC			:=	$(wildcard src/*.cpp)
 
 OBJ			:=	$(SRC:%.cpp=$O%.o)
 
 CXX			:=	c++
 
 CXXFLAGS	+=	-I$I
-CXXFLAGS	+=	-Wall -Wextra -Werror #-std=c++98
+CXXFLAGS	+=	-Wall -Wextra -Werror #-std=c++98 TODO:
 
 LDFLAGS		+=	-I$I
 
@@ -30,9 +30,6 @@ all:
 $(NAME): $(OBJ)
 	$(CXX) $(LDFLAGS) $(OBJ) -o $@
 
-test: $(NAME)
-	./$(NAME)
-
 clean:
 	$(RMDIR) $(wildcard $(NAME).dSYM)
 	$(RMDIR) $O
@@ -43,6 +40,6 @@ fclean: clean
 re: fclean
 	@$(MAKE)
 
-.PHONY: all test clean fclean re
+.PHONY: all clean fclean re
 
 -include $(OBJ:.o=.d)

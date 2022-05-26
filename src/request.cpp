@@ -1,4 +1,15 @@
-#include "request.hpp"
+// #include "request.hpp"
+#include "../header/request.hpp" //TODO:
+
+void	Request::CreatetTmpFile() {
+
+	this->fileName = "/tmp/fileXXXXXX";
+	this->tmpFile = mkstemp(&(*fileName.begin()));
+	if (this->tmpFile == ERROR)
+		throw std::runtime_error(strerror(errno));
+	this->file.open(this->fileName.c_str(), std::fstream::in | std::fstream::out);//TODO: proteger si fail
+}
+
 
 Request::Request(std::string const &str) : 
     _body(""), _statusCode(200), _rawString(str)

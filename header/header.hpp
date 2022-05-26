@@ -1,5 +1,9 @@
-#ifndef _TOOLS_HPP
-# define _TOOLS_HPP
+#ifndef HEADER_HPP
+# define HEADER_HPP
+
+#define ERROR	-1
+#define BACKLOG	1024
+#define BUFF	1024
 
 #include <sys/socket.h> // For socket functions
 #include <netinet/in.h> // For sockaddr_in
@@ -13,7 +17,13 @@
 #include <vector>
 #include <map>
 #include <cstdlib>
+#include <poll.h>
+#include <cerrno>
 
+//C fcts
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 typedef struct s_listen
 {

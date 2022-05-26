@@ -1,4 +1,5 @@
-#include "server.hpp"
+// #include "server.hpp"
+#include "../header/server.hpp" //TODO:
 
 /* ************************************************************************** */
 /*                                CONSTRUCTORS                                */
@@ -51,7 +52,6 @@ int		Server::get_socket_server() const {
 void	Server::set_server() {
 	this->set_socket();
 	this->bind_server();
-	this->listen_server();
 	//Message pour annoncer la creation du socket server ?
 }
 
@@ -86,54 +86,55 @@ void	Server::listen_server() {
 	fd.events = POLLIN | POLLOUT | POLLRDHUP | POLLERR;
 	//Ajout du socket_server comme premier element du vector
 	fds.push_back(fd);
+	this->ready = true;
+	std::cout << "Server up." << std::endl;
 }
 
 // Lorsqu'un client se connecte au server, il faut set la structure pollfd pour ensuite l'ajouter au vector
 void	Server::add_client() {
 	struct pollfd pfd;
 	struct sockaddr_in addrClient;
+	socklen_t size = sizeof(addrClient);
 
-	if ((pfd.fd = ::accept(this->socket_server, NULL, NULL)) == ERROR)
+	if ((pfd.fd = ::accept(this->socket_server, (struct sockaddr *)&addrClient, &size)) == ERROR)
 		throw std::runtime_error(strerror(errno));
 	pfd.events = POLLIN | POLLOUT | POLLRDHUP | POLLERR;
 	fds.push_back(pfd);
-	//TODO: creer un fichier temporaire qui est stocké dans la class request du client
-	//Message pour annoncer une nouvelle connexion client ?
+	this->client_buff[pfd.fd].CreatetTmpFile();
+	std::cout << "Client " << pfd.fd << " connected.\n" << this->fds.size() << std::endl;
 }
 
 void Server::recv(int socket) {
 	this->client_buff[socket].sizeBuff = ::recv(socket, this->client_buff[socket].buff, BUFF, 0);
 	if (this->client_buff[socket].sizeBuff == ERROR)
 		throw std::runtime_error(strerror(errno));
-	// this->client_buff[socket].buff[?] = '\0'; TODO: Mettre \0 a la fin du buff, ou alors clear le buffer a chaque fois
-
-
+	this->client_buff[socket].buff[this->client_buff[socket].sizeBuff] = '\0';
 	// std::cout << "The message was:\n" << client_buff[socket].buff << std::endl; //DEGUB
 }
 
-bool Server::send(int socket) { //TODO: Send a message to the connection
-	//TODO: autre condition.
-	//	_Lorsque read renvoi EOF ?
-	//	_Lorsque le TT de char lu < sizeBuff ?
-	if (!this->response_buff[socket].empty())
-	{
-		// std::string response = "HTTP/1.1 201 OK\r\nDate: Sun, 18 Oct 2012 10:36:20 GMT\r\n\r\n<!DOCTYPE html><html><head><title>Example</title></head><body><p>This is an example of a simple HTML page with one paragraph.</p></body></html>\r\n";
-		if (::send(socket, this->response_buff[socket].c_str(), this->response_buff[socket].size(), 0) == ERROR)
+bool Server::send(int socket) {
+	//preparer la reponse avant de l'envoyer
+	if (this->response_buff[socket].responseIsSet == false)
+		response_buff[socket].prepareResponse();
+	else {
+		if (::send(socket, this->response_buff[socket].buff, this->response_buff[socket].sizeBuff, 0) == ERROR)
 			throw std::runtime_error(strerror(errno));
-		//std::cout << "Response Sent...\n";
-		return (false);
+		this->response_buff[socket].responseIsSet = false;
+		if (this->response_buff[socket].sizeBuff < BUFF)
+			return (true);
 	}
-	return (true);
+	return (false);
 }
 
 void	Server::treat_Request(int client) {
 	//TODO: write le buffer dans un  fichier temporaire puis clear le buffer
-	this->response_buff[client] = "HTTP/1.1 201 OK\r\nDate: Sun, 18 Oct 2012 10:36:20 GMT\r\n\r\n<!DOCTYPE html><html><head><title>Example</title></head><body><p>This is an example of a simple HTML page with one paragraph.</p></body></html>\r\n";
 }
 
-void	Server::routine() {
+void	Server::routine() {//listen poll
 	if (poll(&fds[0], fds.size(), 0) != ERROR) {
-		if (fds[0].revents & POLLIN)
+		if (this->ready == false)
+			this->listen_server();
+		else if (fds[0].revents & POLLIN)
 			add_client();
 		for (std::vector<struct pollfd>::iterator it = this->fds.begin() + 1; it != this->fds.end(); it++) {
 			if (!this->client_buff[it->fd].sizeBuff)
@@ -144,11 +145,9 @@ void	Server::routine() {
 			}
 			else if (it->revents & POLLOUT) {
 				if (this->send(it->fd) == true) {
-					//quand le la reponse est envoyée, fermer le socket
 					close(it->fd);
 					continue;
 				}
-				this->send(it->fd);
 			}
 			else if (it->revents & POLLRDHUP || it->revents & POLLERR) {
 				close(it->fd);
@@ -160,7 +159,10 @@ void	Server::routine() {
 }
 
 void Server::close(int socket) {
+	this->client_buff[socket].file.close();//TODO: proteger si fail
+	//remove() le fichier
 	this->client_buff.erase(socket);
 	this->response_buff.erase(socket);
+	std::cout << "Client " << socket << " disconnected" << std::endl;
 	::close(socket);
 }

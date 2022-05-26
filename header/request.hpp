@@ -5,14 +5,7 @@
 #ifndef _REQUEST_HPP
 # define _REQUEST_HPP
 
-#define BUFF 1024
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstring>
-#include <vector>
-#include <map>
+#include "header.hpp"
 
 class Request
 {
@@ -40,9 +33,13 @@ class Request
         void        parsing(std::string const &str);
         std::string gnl(std::string const &str, size_t &i);
         void        parseFirstLine(std::string const &str);
+		void		CreatetTmpFile();
 
 		char								buff[BUFF+1];
-		size_t								sizeBuff;
+		int									sizeBuff;
+		int									tmpFile;
+		std::string							fileName;
+		std::fstream						file;
 
         //Getters
         std::map<std::string, std::string>  getHeaders();
