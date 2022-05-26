@@ -5,11 +5,12 @@
 #ifndef _REQUEST_HPP
 # define _REQUEST_HPP
 
+#define BUFF 1024
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <string>
+#include <cstring>
 #include <vector>
 #include <map>
 
@@ -39,7 +40,9 @@ class Request
         void        parsing(std::string const &str);
         std::string gnl(std::string const &str, size_t &i);
         void        parseFirstLine(std::string const &str);
-    
+
+		char								buff[BUFF+1];
+		size_t								sizeBuff;
 
         //Getters
         std::map<std::string, std::string>  getHeaders();

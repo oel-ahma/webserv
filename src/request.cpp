@@ -147,25 +147,19 @@ void Request::initHeaders()
 	this->_headers["Connection"] = "Keep-Alive";
 }
 
-Request::Request(){}
+Request::Request() : _statusCode(0), sizeBuff(0) {
+	memset(buff, 0, BUFF);
+}
 
 Request::~Request(){}
 
-Request::Request(Request const &other)
-{
-    this->_method = other._method;
-    this->_path = other._path;
-    this->_query = other._query;
-    this->_version = other._version;
-    this->_methodList = other._methodList;
-    this->_headers = other._headers;
-    this->_body = other._body;
-    this->_statusCode = other._statusCode;
-    this->_rawString = other._rawString;
+Request::Request(Request const &other) {
+	*this = other;
 }
 
-Request &Request::operator=(Request const &rhs)
-{
+Request &Request::operator=(Request const &rhs) {
+	if (this == &rhs)
+		return (*this);
     this->_method = rhs._method;
     this->_path = rhs._path;
     this->_query = rhs._query;
@@ -175,5 +169,7 @@ Request &Request::operator=(Request const &rhs)
     this->_body = rhs._body;
     this->_statusCode = rhs._statusCode;
     this->_rawString = rhs._rawString;
-    return *this;
+	this->sizeBuff = rhs.sizeBuff;
+	strcpy(this->buff, rhs.buff);
+    return (*this);
 }

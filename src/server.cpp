@@ -101,43 +101,34 @@ void	Server::add_client() {
 	//Message pour annoncer une nouvelle connexion client ?
 }
 
-void Server::recv(int socket) { //TODO:
- 
-	//TODO: buff CHAR dans la class REQUEST
-	char tmp[BUFF];
+void Server::recv(int socket) {
+	this->client_buff[socket].sizeBuff = ::recv(socket, this->client_buff[socket].buff, BUFF, 0);
+	if (this->client_buff[socket].sizeBuff == ERROR)
+		throw std::runtime_error(strerror(errno));
+	// this->client_buff[socket].buff[?] = '\0'; TODO: Mettre \0 a la fin du buff, ou alors clear le buffer a chaque fois
 
-	long bytesRead = ::recv(socket, &tmp, BUFF, 0);//TODO:
-	if (bytesRead == ERROR)
-		throw std::runtime_error(strerror(errno)); 
-	//TODO: Request Parsing
-	//TODO: Response Generate
-	client_buff[socket] = std::string(tmp);
-	std::cout << "The message was:\n" << client_buff[socket] << std::endl;
+
+	// std::cout << "The message was:\n" << client_buff[socket].buff << std::endl; //DEGUB
 }
 
-void Server::send(int socket) { //TODO:
-	// Send a message to the connection
-	//Quand le buffer de reponse est vide on a rien a send. on a donc plus l'envoi en boucle {Okey}
-
-	// il faudra preparer la reponse avant de send.
-	//TODO: Probleme: le buffer est forcement vide au debut.
-	if (/* Buffer pas vide */ !this->response_buff[socket].empty())
+bool Server::send(int socket) { //TODO: Send a message to the connection
+	//TODO: autre condition.
+	//	_Lorsque read renvoi EOF ?
+	//	_Lorsque le TT de char lu < sizeBuff ?
+	if (!this->response_buff[socket].empty())
 	{
 		// std::string response = "HTTP/1.1 201 OK\r\nDate: Sun, 18 Oct 2012 10:36:20 GMT\r\n\r\n<!DOCTYPE html><html><head><title>Example</title></head><body><p>This is an example of a simple HTML page with one paragraph.</p></body></html>\r\n";
 		if (::send(socket, this->response_buff[socket].c_str(), this->response_buff[socket].size(), 0) == ERROR)
 			throw std::runtime_error(strerror(errno));
 		//std::cout << "Response Sent...\n";
+		return (false);
 	}
+	return (true);
 }
 
 void	Server::treat_Request(int client) {
-	//
-	//Request 	client_request(client_buff[client]);
-	
-	//Just for debug
+	//TODO: write le buffer dans un  fichier temporaire puis clear le buffer
 	this->response_buff[client] = "HTTP/1.1 201 OK\r\nDate: Sun, 18 Oct 2012 10:36:20 GMT\r\n\r\n<!DOCTYPE html><html><head><title>Example</title></head><body><p>This is an example of a simple HTML page with one paragraph.</p></body></html>\r\n";
-	
-	// 
 }
 
 void	Server::routine() {
@@ -145,19 +136,21 @@ void	Server::routine() {
 		if (fds[0].revents & POLLIN)
 			add_client();
 		for (std::vector<struct pollfd>::iterator it = this->fds.begin() + 1; it != this->fds.end(); it++) {
-			//Si le buffer n'est pas vide, alors on write le buffer dans un fichier temporaire
-			if (!this->client_buff[it->fd].empty())
+			if (!this->client_buff[it->fd].sizeBuff)
 				treat_Request(it->fd);
-			else if (it->revents & POLLIN) { //Si le buffer est vide et que l'event est en POLLIN, on recv la requete
+			else if (it->revents & POLLIN) {
 				this->recv(it->fd);
 				std::cout << it->revents << POLLIN << POLLOUT << std::endl;
 			}
-			else if (it->revents & POLLOUT) { //Si revents passe en POLLOUT alors la requete est fini, on envoi donc une reponse
-				//reponse en boucle, condition pour le faire quand necessaire
-				//TODO: Si la reponse au client a été envoyé, alors close le socket client ?
+			else if (it->revents & POLLOUT) {
+				if (this->send(it->fd) == true) {
+					//quand le la reponse est envoyée, fermer le socket
+					close(it->fd);
+					continue;
+				}
 				this->send(it->fd);
 			}
-			else if (it->revents & POLLRDHUP || it->revents & POLLERR) { //Deco du client;
+			else if (it->revents & POLLRDHUP || it->revents & POLLERR) {
 				close(it->fd);
 			}
 		}
@@ -167,7 +160,7 @@ void	Server::routine() {
 }
 
 void Server::close(int socket) {
-	this->client_buff[socket].erase();
-	this->response_buff[socket].erase();
+	this->client_buff.erase(socket);
+	this->response_buff.erase(socket);
 	::close(socket);
 }
