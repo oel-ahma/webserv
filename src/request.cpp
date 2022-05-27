@@ -7,7 +7,9 @@ void	Request::CreatetTmpFile() {
 	this->tmpFile = mkstemp(&(*fileName.begin()));
 	if (this->tmpFile == ERROR)
 		throw std::runtime_error(strerror(errno));
-	this->file.open(this->fileName.c_str(), std::fstream::in | std::fstream::out);//TODO: proteger si fail
+	this->file.open(this->fileName.c_str(), std::fstream::in | std::fstream::out);
+	if (this->file.fail())
+		throw std::ios_base::failure("failed to open file: " + this->fileName);
 }
 
 

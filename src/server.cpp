@@ -159,8 +159,15 @@ void	Server::routine() {//listen poll
 }
 
 void Server::close(int socket) {
-	this->client_buff[socket].file.close();//TODO: proteger si fail
-	//remove() le fichier
+	this->client_buff[socket].file.close();
+	if (this->client_buff[socket].file.fail() || this->response_buff[socket].file.fail())
+		throw std::ios_base::failure("failed to close file: " + this->client_buff[socket].fileName);
+	this->response_buff[socket].file.close();
+	if (this->response_buff[socket].file.fail())
+		throw std::ios_base::failure("failed to close file: " + this->response_buff[socket].fileName);
+	if (remove(this->client_buff[socket].fileName.c_str()) == ERROR
+		|| remove(this->response_buff[socket].fileName.c_str()) == ERROR)
+		throw std::runtime_error(strerror(errno));
 	this->client_buff.erase(socket);
 	this->response_buff.erase(socket);
 	std::cout << "Client " << socket << " disconnected" << std::endl;
