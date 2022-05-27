@@ -116,9 +116,13 @@ void Server::recv(int socket) {
 
 bool Server::send(int socket) {
 	//preparer la reponse avant de l'envoyer
-	if (this->response_buff[socket].responseIsSet == false)
+	if (this->response_buff[socket].responseIsSet == false) {
+		std::cout << "client " << socket << " has now a response file." << std::endl;
 		response_buff[socket].prepareResponse();
+		std::cout << "file " << this->response_buff[socket].file_name << " is associated with client " << socket << ".\n" << std::endl;
+	}
 	else {
+		std::cout << "We are sending this message:\n" << this->response_buff[socket].buff << "\n" << std::endl;
 		if (::send(socket, this->response_buff[socket].buff, this->response_buff[socket].sizeBuff, 0) == ERROR)
 			throw std::runtime_error("send(): " + (std::string)strerror(errno));
 		this->response_buff[socket].responseIsSet = false;
@@ -167,7 +171,7 @@ void	Server::routine() {//listen poll
 	}
 }
 
-//Verification d'erreur pas sûr.
+//Verification d'erreur pas sûr. Nécessaire de vérif les close() ???
 //google it: std::fstream
 void Server::close(int socket) {
 	std::cout << "---------------here1---------------" << std::endl;
@@ -180,7 +184,7 @@ void Server::close(int socket) {
 	}
 	std::cout << "---------------here2---------------" << std::endl;
 	if (this->response_buff[socket].file_stream.is_open()) {
-		this->response_buff[socket].file_stream.close();
+		this->response_buff[socket].file_stream.close();//TODO: le flag failbit est set, pourquoi ? car le fichier existe pourtant.
 		if (this->response_buff[socket].file_stream.fail())
 			throw std::ios_base::failure("failed to close file: " + this->response_buff[socket].file_name);
 		if (remove(this->response_buff[socket].file_name.c_str()) == ERROR)

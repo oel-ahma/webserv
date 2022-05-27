@@ -2,7 +2,7 @@
 #include "../header/request.hpp" //TODO:
 
 void	Request::CreatetTmpFile() {
-	this->file_name = "/tmp/fileXXXXXX";
+	this->file_name = "/tmp/request_XXXXXX";
 	this->file_fd = mkstemp(&(*file_name.begin()));
 	if (this->file_fd == ERROR)
 			throw std::runtime_error("mkstemp(): " + (std::string)strerror(errno));
@@ -10,7 +10,6 @@ void	Request::CreatetTmpFile() {
 	if (this->file_stream.fail())
 		throw std::ios_base::failure("failed to open file: " + this->file_name);
 	std::cout << "file name of socket " << this->ClientSocket << " is " << this->file_name << std::endl; //DEBUG
-	std::cout << "Is file open ?: " << this->file_stream.is_open() << std::endl;
 }
 
 Request::Request(std::string const &str) : 
