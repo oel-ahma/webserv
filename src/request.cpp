@@ -2,16 +2,16 @@
 #include "../header/request.hpp" //TODO:
 
 void	Request::CreatetTmpFile() {
-
-	this->fileName = "/tmp/fileXXXXXX";
-	this->tmpFile = mkstemp(&(*fileName.begin()));
-	if (this->tmpFile == ERROR)
-		throw std::runtime_error(strerror(errno));
-	this->file.open(this->fileName.c_str(), std::fstream::in | std::fstream::out);
-	if (this->file.fail())
-		throw std::ios_base::failure("failed to open file: " + this->fileName);
+	this->file_name = "/tmp/fileXXXXXX";
+	this->file_fd = mkstemp(&(*file_name.begin()));
+	if (this->file_fd == ERROR)
+			throw std::runtime_error("mkstemp(): " + (std::string)strerror(errno));
+	this->file_stream.open(this->file_name.c_str(), std::fstream::in | std::fstream::out);
+	if (this->file_stream.fail())
+		throw std::ios_base::failure("failed to open file: " + this->file_name);
+	std::cout << "file name of socket " << this->ClientSocket << " is " << this->file_name << std::endl; //DEBUG
+	std::cout << "Is file open ?: " << this->file_stream.is_open() << std::endl;
 }
-
 
 Request::Request(std::string const &str) : 
     _body(""), _statusCode(200), _rawString(str)
@@ -160,7 +160,7 @@ void Request::initHeaders()
 	this->_headers["Connection"] = "Keep-Alive";
 }
 
-Request::Request() : _statusCode(0), sizeBuff(0) {
+Request::Request() : _statusCode(0), sizeBuff(0), file_fd(-1) {
 	memset(buff, 0, BUFF);
 }
 
