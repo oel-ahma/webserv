@@ -1,11 +1,5 @@
-#include "tools.hpp"
-
-template<typename T>
-void print_vector(std::vector<T> const &vec)
-{
-for (auto i = vec.begin(); i != vec.end(); ++i)
-    std::cout << *i << "\n";
-}
+#include "../header/header.hpp"
+#include "../header/server.hpp"
 
 bool isNumber(const std::string& s)
 {

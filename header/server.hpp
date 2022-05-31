@@ -4,7 +4,7 @@
 #include "header.hpp"
 #include "config.hpp"
 #include "request.hpp"
-#include "Response.hpp"
+#include "response.hpp"
 
 class Server
 {
@@ -37,7 +37,7 @@ class Server
 		void	treat_Request(int client);
 		void	recv(int socket);
 		bool	send(int socket);
-		void	close(int socket);
+		void	close(std::vector<struct pollfd>::iterator it);
 		bool	ready;
 };
 

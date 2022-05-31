@@ -5,6 +5,8 @@
 
 int main(int ac, char **av) 
 {
+	(void)ac;
+	(void)av;
 	// Config 						config;
 	// std::vector<std::string>	configFile;
 	// std::vector<Server>			Servers;

@@ -15,10 +15,7 @@ void	Request::CreatetTmpFile() {
 Request::Request(std::string const &str) : 
     _body(""), _statusCode(200), _rawString(str)
 {
-    initHeaders();
-    initMethodList();
     parsing(str);
-    print_map(this->_headers);
     if (this->_statusCode != 200)
         std::cerr << "Parsing Error : " << this->_statusCode << std::endl;
 }
@@ -31,14 +28,17 @@ void Request::parsing(std::string const &str)
     size_t			j;
     size_t          i(0);
 
+	initHeaders();
+    initMethodList();
+	this->_statusCode = 200;
     parseFirstLine(gnl(str, i));
     while(((line = gnl(str, i) )!= "") && _statusCode != 400)
     {
         j = line.find_first_of(':');
         key = line.substr(0, j);
-        value = line.substr(j + 1, std::string::npos);
-        if (_headers.count(key))
-            _headers[key] = value; 
+        value = line.substr(j + 2, std::string::npos);
+        //if (_headers.count(key))
+		_headers[key] = value; 
     }
 
 }
@@ -110,7 +110,7 @@ void    Request::parseFirstLine(std::string const &str)
     //GET VERSION
     line = line.substr(i + 1, std::string::npos);
     if ((line.compare(0, 8, "HTTP/1.1") == 0 || line.compare(0, 8, "HTTP/1.0") == 0 ) && line.size() == 8)
-        _version.assign(line, 0, i);
+        _version.assign(line, 0, 8);
     else
     {
         std::cerr << "Bad HTTP version" << std::endl;
@@ -136,6 +136,7 @@ void Request::initHeaders()
 {
     this->_headers.clear();
 
+	/*
     this->_headers["Accept"] = "";
 	this->_headers["Accept-Charsets"] = "";
 	this->_headers["Accept-Language"] = "";
@@ -156,7 +157,7 @@ void Request::initHeaders()
 	this->_headers["Transfer-Encoding"] = "";
 	this->_headers["User-Agent"] = "";
 	this->_headers["Www-Authenticate"] = "";
-	this->_headers["Connection"] = "Keep-Alive";
+	this->_headers["Connection"] = "Keep-Alive";*/
 }
 
 Request::Request() : _statusCode(0), sizeBuff(0), file_fd(-1) {
@@ -185,3 +186,12 @@ Request &Request::operator=(Request const &rhs) {
 	strcpy(this->buff, rhs.buff);
     return (*this);
 }
+
+std::map<std::string, std::string>  Request::getHeaders() { return this->_headers; }
+std::string                         Request::getBody() { return this->_body; }
+size_t                              Request::getStatusCode() { return this->_statusCode; }
+std::string                         Request::getRawString() {return this->_rawString; }
+std::string							Request::getMethod() { return this->_method; }
+std::string							Request::getQuery() { return this->_query; }
+std::string							Request::getPath() {return this->_path; }
+std::string							Request::getVersion() { return this->_version; }

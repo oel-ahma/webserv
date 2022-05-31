@@ -64,10 +64,10 @@ class ConfigParse
         //Directives Members
         
         std::vector<t_listen>           _listen;
+        long                            _clientMaxBodySize;
         std::string                     _root;
         std::vector<std::string>        _serverName;
         std::map<int, std::string>      _errorPages;
-        long                            _clientMaxBodySize;
         std::vector<std::string>        _allowedMethods;
         std::vector<std::string>        _index;
         bool                            _autoindex;

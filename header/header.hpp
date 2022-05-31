@@ -33,7 +33,20 @@ typedef struct s_listen
 
 
 bool isNumber(const std::string& s);
+
 template<typename T>
-void print_vector(std::vector<T> const &vec);
+void print_vector(std::vector<T> const &vec)
+{
+for (auto i = vec.begin(); i != vec.end(); ++i)
+    std::cout << *i << "\n";
+}
+
+template<typename K, typename V> 
+void print_map(std::map<K, V> const &m)
+{
+    for (auto it = m.begin(); it != m.end(); ++it) { //Carefull auto is C++11
+        std::cout << (*it).first << ": " << (*it).second << "\n";
+    }
+}
 
 #endif

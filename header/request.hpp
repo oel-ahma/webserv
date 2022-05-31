@@ -46,20 +46,18 @@ class Request
         std::string                         getBody();
         size_t                              getStatusCode();
         std::string                         getRawString();
-
-
+		std::string							getMethod();
+		std::string							getQuery();
+		std::string							getPath();
+		std::string							getVersion();
 
         //Debug Methods
         void printHeaders();
+		//Added Members 30/05
+		std::string							file_name;
+		int									file_fd;
+		int									ClientSocket;
+		std::fstream						file_stream;
 };
-
-
-template<typename K, typename V> 
-void print_map(std::map<K, V> const &m)
-{
-    for (auto it = m.begin(); it != m.end(); ++it) { //Carefull auto is C++11
-        std::cout << (*it).first << ": " << (*it).second << "\n";
-    }
-}
 
 #endif
