@@ -14,7 +14,7 @@ Server::Server(Server const &other) {
 	*this = other;
 }
 
-Server::Server() {}
+Server::Server() : ready(false) {}
 
 /* ************************************************************************** */
 /*                                 DESTRUCTOR                                 */
@@ -118,8 +118,8 @@ void Server::recv(int socket) {
 bool Server::send(int socket) {
 	//preparer la reponse avant de l'envoyer
 	if (this->response_buff[socket].responseIsSet == false) {
-		std::cout << "client " << socket << " has now a response file." << std::endl;
-		response_buff[socket].prepareResponse();
+		// std::cout << "client " << socket << " has now a response file." << std::endl;
+		response_buff[socket].prepareResponse(&client_buff[socket]);
 		std::cout << "file " << this->response_buff[socket].file_name << " is associated with client " << socket << ".\n" << std::endl;
 	}
 	else {
@@ -141,14 +141,9 @@ void	Server::treat_Request(int client) {
 
 	//*---Request Parsing---*//
 	client_buff[client].parsing(client_buff[client].buff);
-	std::cout << "Method: " << client_buff[client].getMethod() << std::endl;
-	std::cout << "Path: " <<  client_buff[client].getPath() << std::endl;
-	std::cout << "Http Version: " << client_buff[client].getVersion() << std::endl;
-	std::cout << "Query: " << client_buff[client].getQuery() << std::endl;
-	std::cout << "Status Code: " << client_buff[client].getStatusCode() << std::endl;
-	std::cout << "[Request Headers]" << std::endl;
-	print_map(client_buff[client].getHeaders());
-	std::cout << std::endl;
+	client_buff[client].setRoot(this->root);
+	//Work In Progress...
+
 }
 
 void	Server::routine() {//listen poll
@@ -159,19 +154,16 @@ void	Server::routine() {//listen poll
 			add_client();
 			return ;
 		}
-		for (std::vector<struct pollfd>::iterator it = this->fds.begin() + 1; it != this->fds.end(); it++) {
-			/*std::cout << "fd = " << it->fd << std::endl;
-			for (size_t i = 0; i < fds.size(); i++) {
-				std::cout << "fds[ " << fds[i].fd << " ]" << std::endl;
-			}*///DEBUG
+
+		for (std::vector<struct pollfd>::iterator it = this->fds.begin() + 1; it != this->fds.end() && fds.size() > 1; it++) {
 			if (this->client_buff[it->fd].sizeBuff)
 				treat_Request(it->fd);
 			else if (it->revents & POLLIN) {
-				std::cout << "socket " << it->fd << " ----POLLIN---------" << std::endl;
+				// std::cout << "socket " << it->fd << " ----POLLIN---------" << std::endl;
 				this->recv(it->fd);
 			}
 			else if (it->revents & POLLOUT) {
-				std::cout << "socket " << it->fd << " ----POLLOUT---------" << std::endl;
+				// std::cout << "socket " << it->fd << " ----POLLOUT---------" << std::endl;
 				if (this->send(it->fd) == true) {
 					std::cout << "socket " << it->fd << " ----close dans POLLOUT---------" << std::endl;
 					close(it);
@@ -179,7 +171,7 @@ void	Server::routine() {//listen poll
 				}
 			}
 			else if (it->revents & POLLRDHUP || it->revents & POLLERR) {
-				std::cout << "socket " << it->fd << " ----close dans POLLRDHUP ou POLLERR---------" << std::endl;
+				// std::cout << "socket " << it->fd << " ----close dans POLLRDHUP ou POLLERR---------" << std::endl;
 				close(it);
 			}
 		}
@@ -190,11 +182,10 @@ void	Server::routine() {//listen poll
 	}
 }
 
-//Verification d'erreur pas sûr. Nécessaire de vérif les close() ???
-//google it: std::fstream
 void Server::close(std::vector<struct pollfd>::iterator it) {
-	std::cout << "---------------here1---------------" << std::endl;
+	// std::cout << "---------------here1---------------" << std::endl;
 	this->response_buff[it->fd].file_stream.clear();
+	this->client_buff[it->fd].file_stream.clear();
 	if (this->client_buff[it->fd].file_stream.is_open()) {
 		this->client_buff[it->fd].file_stream.close();
 		if (this->client_buff[it->fd].file_stream.fail())
@@ -202,15 +193,15 @@ void Server::close(std::vector<struct pollfd>::iterator it) {
 		if (remove(this->client_buff[it->fd].file_name.c_str()) == ERROR)
 			throw std::runtime_error("remove(): " + std::string(strerror(errno)));
 	}
-	std::cout << "---------------here2---------------" << std::endl;
+	// std::cout << "---------------here2---------------" << std::endl;
 	if (this->response_buff[it->fd].file_stream.is_open()) {
-		this->response_buff[it->fd].file_stream.close();//TODO: le flag failbit est set, pourquoi ? car le fichier existe pourtant.
+		this->response_buff[it->fd].file_stream.close();
 		if (this->response_buff[it->fd].file_stream.fail())
 			throw std::ios_base::failure("failed to close file: " + this->response_buff[it->fd].file_name);
 		if (remove(this->response_buff[it->fd].file_name.c_str()) == ERROR)
 			throw std::runtime_error("remove(): " + std::string(strerror(errno)));
 	}
-	std::cout << "---------------here3---------------" << std::endl;
+	// std::cout << "---------------here3---------------" << std::endl;
 	this->client_buff.erase(it->fd);
 	this->response_buff.erase(it->fd);
 	this->fds.erase(it);

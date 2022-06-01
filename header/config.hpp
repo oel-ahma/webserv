@@ -1,7 +1,7 @@
 #ifndef _CONFIG_HPP
 # define _CONFIG_HPP
 
-#include "configParse.hpp"
+#include "header.hpp"
 
 class ConfigParse;
 

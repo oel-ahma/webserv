@@ -20,6 +20,10 @@
 #include <poll.h>
 #include <cerrno>
 
+#include "config.hpp"
+#include "request.hpp"
+#include "response.hpp"
+
 //C fcts
 #include <stdio.h>
 #include <stdlib.h>

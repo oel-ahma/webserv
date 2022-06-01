@@ -26,6 +26,7 @@ class Server
 	private:
 		int							socket_server;//TODO: const ?
 		uint32_t					PORT = 8080;//TODO: const ?
+		std::string					root = "/www";
 		std::vector<struct pollfd>	fds;
 		std::map<int, Request>		client_buff;
 		std::map<int, Response>		response_buff;	//TODO: Class response ? mettre le buffer CHAR dans la class response

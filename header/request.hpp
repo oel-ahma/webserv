@@ -11,7 +11,7 @@ class Request
 {
     private:
         std::string                         _method;
-        std::string                          _query;
+        std::string                         _query;
         std::string                         _path;
         std::string                         _version;
         std::map<std::string, std::string>  _headers;
@@ -19,6 +19,9 @@ class Request
         size_t                              _statusCode;
         std::string                         _rawString;
         std::vector<std::string>            _methodList;
+		//Not Sure If It has to be in this Class
+		std::string							_root;
+		std::string							_index = "index.html";		
 
     public:
         Request();
@@ -50,14 +53,18 @@ class Request
 		std::string							getQuery();
 		std::string							getPath();
 		std::string							getVersion();
+		std::string							getIndex();
+		std::string							getRoot();
 
-        //Debug Methods
-        void printHeaders();
+        //Setters
+		void								setRoot(std::string str);
+		void								setStatusCode(size_t statusCode);
 		//Added Members 30/05
 		std::string							file_name;
 		int									file_fd;
 		int									ClientSocket;
 		std::fstream						file_stream;
+
 };
 
 #endif

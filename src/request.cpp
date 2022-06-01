@@ -9,7 +9,7 @@ void	Request::CreatetTmpFile() {
 	this->file_stream.open(this->file_name.c_str(), std::fstream::in | std::fstream::out);
 	if (this->file_stream.fail())
 		throw std::ios_base::failure("failed to open file: " + this->file_name);
-	std::cout << "file name of socket " << this->ClientSocket << " is " << this->file_name << std::endl; //DEBUG
+	// std::cout << "file name of socket " << this->ClientSocket << " is " << this->file_name << std::endl; //DEBUG
 }
 
 Request::Request(std::string const &str) : 
@@ -160,7 +160,7 @@ void Request::initHeaders()
 	this->_headers["Connection"] = "Keep-Alive";*/
 }
 
-Request::Request() : _statusCode(0), sizeBuff(0), file_fd(-1) {
+Request::Request() : _statusCode(200), _root(""), sizeBuff(0), file_fd(-1) {
 	memset(buff, 0, BUFF);
 }
 
@@ -182,11 +182,21 @@ Request &Request::operator=(Request const &rhs) {
     this->_body = rhs._body;
     this->_statusCode = rhs._statusCode;
     this->_rawString = rhs._rawString;
+	this->_root = rhs._root;
+	this->_index = rhs._index;
 	this->sizeBuff = rhs.sizeBuff;
+	this->file_name = rhs.file_name;
+	this->file_fd = rhs.file_fd;
+	this->ClientSocket = rhs.ClientSocket;
 	strcpy(this->buff, rhs.buff);
     return (*this);
 }
 
+
+void								Request::setRoot(std::string str) { this->_root = str; }
+void								Request::setStatusCode(size_t statusCode) { this->_statusCode = statusCode; }
+
+//Getters
 std::map<std::string, std::string>  Request::getHeaders() { return this->_headers; }
 std::string                         Request::getBody() { return this->_body; }
 size_t                              Request::getStatusCode() { return this->_statusCode; }
@@ -195,3 +205,5 @@ std::string							Request::getMethod() { return this->_method; }
 std::string							Request::getQuery() { return this->_query; }
 std::string							Request::getPath() {return this->_path; }
 std::string							Request::getVersion() { return this->_version; }
+std::string							Request::getIndex() {return this->_index; }
+std::string							Request::getRoot() {return this->_root; }
