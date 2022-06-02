@@ -165,7 +165,7 @@ void	Server::routine() {//listen poll
 			else if (it->revents & POLLOUT) {
 				// std::cout << "socket " << it->fd << " ----POLLOUT---------" << std::endl;
 				if (this->send(it->fd) == true) {
-					std::cout << "socket " << it->fd << " ----close dans POLLOUT---------" << std::endl;
+					// std::cout << "socket " << it->fd << " ----close dans POLLOUT---------" << std::endl;
 					close(it);
 					continue;
 				}

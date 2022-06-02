@@ -38,7 +38,7 @@ void Request::parsing(std::string const &str)
         key = line.substr(0, j);
         value = line.substr(j + 2, std::string::npos);
         //if (_headers.count(key))
-		_headers[key] = value; 
+		_headers[key] = value;
     }
 
 }

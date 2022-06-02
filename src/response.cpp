@@ -49,18 +49,17 @@ void	setRequest(Request *other) {
 
 void	Response::prepareResponse(Request *request) {
 	if (this->file_stream.is_open() == false) {
-		std::cout << "creation du fichier pour l'envoi." << std::endl;
+		// std::cout << "creation du fichier pour l'envoi." << std::endl;
 		this->CreateTmpFile();
 	}
-	//Parser la requete pour creer une reponse
-	//mettre la reponse dans le fichier
-	//remplir le buffer de la reponse
+	//Generate A Response From Request.
 	this->createResponse(request);
+	//Put The Response In the File.
 	this->file_stream << this->_response;
+	//Fill The Buffer From the File.
 	this->file_stream.close();
 	this->file_stream.open(this->file_name.c_str(), std::fstream::in | std::fstream::out);
 	this->file_stream.read(this->buff, BUFF);//TODO: read() ne semble pas fonctionner. il read 0 char. Pourquoi ?
-	std::cout << this->buff; 
 	if (this->file_stream.bad())
 			throw std::ios_base::failure("failed to read file: " + this->file_name);
 	this->sizeBuff = this->file_stream.gcount();
@@ -84,15 +83,20 @@ void Response::createResponse(Request *request) {
 	this->_request = *request;
 	if (this->_request.getMethod() == "GET")
 		this->httpGetMethod();
+	if (this->_request.getMethod() == "POST")
+		this->httpPostMethod();
 }
 
 int	Response::httpGetMethod() {
-
 	std::string tmp_path;
 	std::fstream file;
 
-	tmp_path = "." + this->_request.getRoot() + this->_request.getPath() + this->_request.getIndex();
-  	file.open(tmp_path, std::fstream::in | std::fstream::out);
+	tmp_path = "." + this->_request.getRoot() + this->_request.getPath();
+	if (this->_request.getPath() == "/")
+		tmp_path += this->_request.getIndex();
+	else
+		tmp_path += ".html";
+	file.open(tmp_path, std::fstream::in | std::fstream::out);
 	if (!file.fail())
 	{
 		std::string buff((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -100,14 +104,21 @@ int	Response::httpGetMethod() {
 	}
 	else
 	{
-		//Some Issues
-		this->_body = "<!doctype html><html><head><title>Error 404 Page Not Found</title></head></html>\r\n";
+		this->_body = "<!doctype html><html><head><title>404 Page Not Found!</title><h1><b>Error 404</b></h1><h2>Page Not Found</h2></head></html>\r\n";
 		this->_request.setStatusCode(404);
 	}
 	file.close();
 	this->_statusLine = this->_request.getVersion() + " " + std::to_string(this->_request.getStatusCode()) + " " + this->_statusMsg[this->_request.getStatusCode()] + "\r\n";
 	this->setHeaders();
 	this->_response = this->_statusLine + this->_headers + this->_body;
+	return 0;
+}
+
+int Response::httpPostMethod() {
+	std::cout << "The Body is: "<< this->_request.getBody() << std::endl;
+	std::cout << "The Headers are: ";
+	print_map(this->_request.getHeaders());
+	this->_response = "HTTP/1.1 200 OK\r\n\r\n";
 	return 0;
 }
 
@@ -121,7 +132,7 @@ void	Response::initStatusCodeMsg() {
 	_statusMsg[200] = "OK";
 	_statusMsg[400] = "BAD REQUEST";
 	_statusMsg[403] = "FORBIDDEN";
-	_statusMsg[404] = "Not Found";
+	_statusMsg[404] = "NOT FOUND";
 	_statusMsg[415] = "UNSUPPORTED MEDIA TYPE";
 	_statusMsg[500] = "INTERNAL SERVER ERROR";
 	_statusMsg[502] = "BAD GATEWAY";
