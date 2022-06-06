@@ -32,7 +32,7 @@ void Request::parsing(std::string const &str)
     initMethodList();
 	this->_statusCode = 200;
     parseFirstLine(gnl(str, i));
-    while(((line = gnl(str, i) )!= "") && _statusCode != 400)
+    while(((line = gnl(str, i)) != "") && _statusCode != 400)
     {
         j = line.find_first_of(':');
         key = line.substr(0, j);
@@ -40,7 +40,7 @@ void Request::parsing(std::string const &str)
         //if (_headers.count(key))
 		_headers[key] = value;
     }
-
+	_body = str.substr(i, std::string::npos);
 }
 
 std::string Request::gnl(std::string const &str, size_t &i)
@@ -51,7 +51,7 @@ std::string Request::gnl(std::string const &str, size_t &i)
     if (i == std::string::npos)
         return "";
     ret = str.substr(i, std::string::npos);
-    j = ret.find_first_of('\n');
+	j = ret.find_first_of('\n');
     ret = ret.substr(0, j);
     if (ret[ret.size() - 1] == '\r')
 	{
@@ -160,7 +160,7 @@ void Request::initHeaders()
 	this->_headers["Connection"] = "Keep-Alive";*/
 }
 
-Request::Request() : _statusCode(200), _root(""), sizeBuff(0), file_fd(-1) {
+Request::Request() : _statusCode(200), sizeBuff(0), file_fd(-1) {
 	memset(buff, 0, BUFF);
 }
 
@@ -182,8 +182,6 @@ Request &Request::operator=(Request const &rhs) {
     this->_body = rhs._body;
     this->_statusCode = rhs._statusCode;
     this->_rawString = rhs._rawString;
-	this->_root = rhs._root;
-	this->_index = rhs._index;
 	this->sizeBuff = rhs.sizeBuff;
 	this->file_name = rhs.file_name;
 	this->file_fd = rhs.file_fd;
@@ -192,8 +190,6 @@ Request &Request::operator=(Request const &rhs) {
     return (*this);
 }
 
-
-void								Request::setRoot(std::string str) { this->_root = str; }
 void								Request::setStatusCode(size_t statusCode) { this->_statusCode = statusCode; }
 
 //Getters
@@ -205,5 +201,4 @@ std::string							Request::getMethod() { return this->_method; }
 std::string							Request::getQuery() { return this->_query; }
 std::string							Request::getPath() {return this->_path; }
 std::string							Request::getVersion() { return this->_version; }
-std::string							Request::getIndex() {return this->_index; }
-std::string							Request::getRoot() {return this->_root; }
+

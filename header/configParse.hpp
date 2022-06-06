@@ -23,6 +23,20 @@ class ConfigParse
 		};
 
         friend	std::ostream &operator<<(std::ostream &out, ConfigParse const &server);
+		//Getters
+        std::vector<t_listen>           getListen() const;
+        std::string                     getRoot() const;
+        std::vector<std::string>        getServerName() const;
+        std::map<int, std::string>      getErrorPages() const;
+        long                            getClientMaxBodySize() const;
+        std::vector<std::string>        getAllowedMethods() const;
+        std::vector<std::string>        getIndex() const;
+        bool                            getAutoindex() const;
+        bool                            getUploadEnable() const;
+        std::string                     getUploadPath() const;
+        std::string                     getCgiPath() const; //it's not the right type of variable
+        std::string                     getCgiExtension() const; //it's not the right type of variable
+        std::string                     getAlias() const;		
 
     private:
         //Init Functions
@@ -46,20 +60,6 @@ class ConfigParse
         void                        addUploadEnable(std::vector<std::string> args);
         void                        addUploadPath(std::vector<std::string> args);
 
-		//Getters
-        std::vector<t_listen>           getListen();
-        std::string                     getRoot();
-        std::vector<std::string>        getServerName();
-        std::map<int, std::string>      getErrorPages();
-        long                            getClientMaxBodySize();
-        std::vector<std::string>        getAllowedMethods();
-        std::vector<std::string>        getIndex();
-        bool                            getAutoindex();
-        bool                            getUploadEnable();
-        std::string                     getUploadPath();
-        std::string                     getCgiPath(); //it's not the right type of variable
-        std::string                     getCgiExtension(); //it's not the right type of variable
-        std::string                     getAlias();		
 
         //Directives Members
         

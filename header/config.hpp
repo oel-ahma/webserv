@@ -19,8 +19,8 @@ class Config
         int                         parse(std::vector<std::string> const &configFile);
         std::vector<std::string>    readConfigFile(std::string const &fileName);
 
-    private:
         std::vector<ConfigParse>    _servers;
+    private:
 
 };
 

@@ -5,7 +5,7 @@
 /*                                CONSTRUCTORS                                */
 /* ************************************************************************** */
 
-Response::Response() : sizeBuff(0), responseIsSet(false), file_fd(-1), _headers(""), _body("") {
+Response::Response() : sizeBuff(0), responseIsSet(false), file_fd(-1), _body("") {
 	memset(buff, 0, BUFF);
 	this->initStatusCodeMsg();
 }
@@ -38,10 +38,10 @@ Response &Response::operator=(Response const &other) {
 /* ************************************************************************** */
 /*                                  SETTERS	                                  */
 /* ************************************************************************** */
-void	setRequest(Request *other) {
-	(void)other;
-	//this->_request = other;
-}
+
+void	Response::setRoot(std::string str) { this->_root = str; }
+void	Response::setIndex(std::string str) { this->_index = str; }
+
 /* ************************************************************************** */
 /*                              MEMBER FUNCTION                               */
 /* ************************************************************************** */
@@ -80,20 +80,23 @@ void	Response::CreateTmpFile() {
 }
 
 void Response::createResponse(Request *request) {
-	this->_request = *request;
-	if (this->_request.getMethod() == "GET")
+	this->_request = request;
+	if (this->_request->getMethod() == "GET")
 		this->httpGetMethod();
-	if (this->_request.getMethod() == "POST")
+	if (this->_request->getMethod() == "POST")
 		this->httpPostMethod();
+	this->_statusLine = this->_request->getVersion() + " " + std::to_string(this->_request->getStatusCode()) + " " + this->_statusMsg[this->_request->getStatusCode()] + "\r\n";
+	this->setHeaders();
+	this->_response = this->_statusLine + this->_headers + this->_body;
 }
 
 int	Response::httpGetMethod() {
 	std::string tmp_path;
 	std::fstream file;
 
-	tmp_path = "." + this->_request.getRoot() + this->_request.getPath();
-	if (this->_request.getPath() == "/")
-		tmp_path += this->_request.getIndex();
+	tmp_path = "." + this->_root + this->_request->getPath();
+	if (this->_request->getPath() == "/")
+		tmp_path += this->_index;
 	else
 		tmp_path += ".html";
 	file.open(tmp_path, std::fstream::in | std::fstream::out);
@@ -105,26 +108,25 @@ int	Response::httpGetMethod() {
 	else
 	{
 		this->_body = "<!doctype html><html><head><title>404 Page Not Found!</title><h1><b>Error 404</b></h1><h2>Page Not Found</h2></head></html>\r\n";
-		this->_request.setStatusCode(404);
+		this->_request->setStatusCode(404);
 	}
 	file.close();
-	this->_statusLine = this->_request.getVersion() + " " + std::to_string(this->_request.getStatusCode()) + " " + this->_statusMsg[this->_request.getStatusCode()] + "\r\n";
-	this->setHeaders();
-	this->_response = this->_statusLine + this->_headers + this->_body;
 	return 0;
 }
 
 int Response::httpPostMethod() {
-	std::cout << "The Body is: "<< this->_request.getBody() << std::endl;
-	std::cout << "The Headers are: ";
-	print_map(this->_request.getHeaders());
-	this->_response = "HTTP/1.1 200 OK\r\n\r\n";
+	std::cout << "The Body is: "<< this->_request->getBody() << std::endl;
 	return 0;
 }
 
 int		Response::setHeaders() {
 	//TODO: Which Headers to Put in...
-	this->_headers = "\r\n\r\n";
+	this->_headers += "Version: " + this->_request->getVersion() + "\r\n";
+	this->_headers += "Connection: keep-alive\r\n";
+	// this->_headers += "Keep-Alive: timeout=10\r\n";
+	this->_headers += "Content-Length: " + std::to_string(this->_body.length());
+	this->_headers += "\r\n\r\n";
+
 	return 0;
 }
 

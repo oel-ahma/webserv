@@ -2,8 +2,9 @@
 # define RESPONSE_HPP
 
 #include "header.hpp"
+#include "request.hpp"
 
-
+class Request;
 
 class Response {
 	public:
@@ -20,13 +21,15 @@ class Response {
 		void	initStatusCodeMsg();
 		
 		//Setters
-		void	setRequest(Request *other);
-		
+		void	setRoot(std::string root);
+		void	setIndex(std::string index);
+
 		//Http Methods
 		int		httpGetMethod();
 		int		httpPostMethod();
 		int		httpDeleteMethod();
 		int		setHeaders();
+
 
 		char	buff[BUFF+1];
 		int		sizeBuff;
@@ -35,13 +38,16 @@ class Response {
 		int 			file_fd;
 		std::fstream	file_stream;
 
-		Request			_request;
 	private:
-		std::map<size_t, std::string>	_statusMsg;
+		Request								*_request;
+		std::map<size_t, std::string>		_statusMsg;
 		std::string							_statusLine;
 		std::string							_headers;
 		std::string							_body;
 		std::string							_response;
+		
+		std::string							_root;
+		std::string							_index;
 };
 
 #endif

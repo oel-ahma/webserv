@@ -1,4 +1,4 @@
-#include "config.hpp"
+#include "../header/config.hpp"
 
 
 Config::Config(){}

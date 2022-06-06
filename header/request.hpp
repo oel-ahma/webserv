@@ -19,9 +19,7 @@ class Request
         size_t                              _statusCode;
         std::string                         _rawString;
         std::vector<std::string>            _methodList;
-		//Not Sure If It has to be in this Class
-		std::string							_root;
-		std::string							_index = "index.html";		
+		//Not Sure If It has to be in this Class	
 
     public:
         Request();
@@ -53,9 +51,6 @@ class Request
 		std::string							getQuery();
 		std::string							getPath();
 		std::string							getVersion();
-		std::string							getIndex();
-		std::string							getRoot();
-
         //Setters
 		void								setRoot(std::string str);
 		void								setStatusCode(size_t statusCode);

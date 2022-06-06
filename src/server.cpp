@@ -5,9 +5,14 @@
 /*                                CONSTRUCTORS                                */
 /* ************************************************************************** */
 
-Server::Server(Config const &conf) {
-	(void)conf;
-	//TODO:
+Server::Server(ConfigParse const &conf) {
+	this->root = conf.getRoot();
+	std::vector<std::string> tmpI = conf.getIndex(); 
+	this->index = tmpI[0];
+	std::vector<t_listen> tmp = conf.getListen();
+	this->PORT = tmp[0].port;
+	this->ready = false;
+	//TODO: Here Initialize (port, host, root,...) With Config File Data 
 }
 
 Server::Server(Server const &other) {
@@ -29,7 +34,12 @@ Server::~Server() {}
 Server & Server::operator=(Server const &other) {
 	this->socket_server = other.socket_server;
 	this->PORT = other.PORT;
+	this->root = other.root;
+	this->index = other.index;
 	this->fds = other.fds;
+	this->ready = other.ready;
+	this->client_buff = other.client_buff;
+	this->response_buff = other.response_buff;
 	return (*this);
 }
 
@@ -43,6 +53,10 @@ int	Server::get_port() const {
 
 int		Server::get_socket_server() const {
 	return(this->socket_server);
+}
+
+bool Server::getReady() {
+	return this->ready;
 }
 
 /* ************************************************************************** */
@@ -72,7 +86,7 @@ void	Server::bind_server() {
 
 	memset((char *)&addrServer, 0, sizeof(addrServer));
 	addrServer.sin_family = PF_INET;
-	addrServer.sin_port = htons(8080);
+	addrServer.sin_port = htons(this->PORT);
 	addrServer.sin_addr.s_addr = htonl(INADDR_ANY);
 	if (bind(this->socket_server, (struct sockaddr *)&addrServer, (socklen_t)sizeof(addrServer)) == ERROR)
 		throw std::runtime_error("bind(): " + std::string(strerror(errno)));
@@ -119,6 +133,8 @@ bool Server::send(int socket) {
 	//preparer la reponse avant de l'envoyer
 	if (this->response_buff[socket].responseIsSet == false) {
 		// std::cout << "client " << socket << " has now a response file." << std::endl;
+		response_buff[socket].setRoot(this->root);
+		response_buff[socket].setIndex(this->index);
 		response_buff[socket].prepareResponse(&client_buff[socket]);
 		std::cout << "file " << this->response_buff[socket].file_name << " is associated with client " << socket << ".\n" << std::endl;
 	}
@@ -141,7 +157,6 @@ void	Server::treat_Request(int client) {
 
 	//*---Request Parsing---*//
 	client_buff[client].parsing(client_buff[client].buff);
-	client_buff[client].setRoot(this->root);
 	//Work In Progress...
 
 }
@@ -154,7 +169,6 @@ void	Server::routine() {//listen poll
 			add_client();
 			return ;
 		}
-
 		for (std::vector<struct pollfd>::iterator it = this->fds.begin() + 1; it != this->fds.end() && fds.size() > 1; it++) {
 			if (this->client_buff[it->fd].sizeBuff)
 				treat_Request(it->fd);

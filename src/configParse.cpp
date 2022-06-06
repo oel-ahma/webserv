@@ -1,5 +1,5 @@
 
-#include "configParse.hpp"
+#include "../header/configParse.hpp"
 
 int ConfigParse::directiveArgsNumber(size_t const index, std::vector<std::string> const configFile, std::string *directive, ServerMap ParsedMap)
 {
@@ -301,16 +301,16 @@ ConfigParse &ConfigParse::operator=(ConfigParse const &other)
 	return *this;
 }
 
-std::vector<t_listen>           ConfigParse::getListen() { return _listen; }
-std::string                     ConfigParse::getRoot() { return _root; }
-std::vector<std::string>        ConfigParse::getServerName() { return _serverName; }
-std::map<int, std::string>      ConfigParse::getErrorPages() { return _errorPages; }
-long                            ConfigParse::getClientMaxBodySize() { return _clientMaxBodySize; }
-std::vector<std::string>        ConfigParse::getAllowedMethods() { return _allowedMethods; }
-std::vector<std::string>        ConfigParse::getIndex() { return _index; }
-bool                            ConfigParse::getAutoindex() { return _autoindex; }
-bool                            ConfigParse::getUploadEnable() { return _uploadEnable; }
-std::string                     ConfigParse::getUploadPath(){ return _uploadPath; }
-std::string                     ConfigParse::getCgiPath() { return _cgiPath; } //it's not the right type of variable
-std::string                     ConfigParse::getCgiExtension() {return _cgiExtension; } //it's not the right type of variable
-std::string                     ConfigParse::getAlias() { return _alias; }
+std::vector<t_listen>           ConfigParse::getListen() const{ return _listen; }
+std::string                     ConfigParse::getRoot() const { return _root; }
+std::vector<std::string>        ConfigParse::getServerName() const { return _serverName; }
+std::map<int, std::string>      ConfigParse::getErrorPages() const { return _errorPages; }
+long                            ConfigParse::getClientMaxBodySize() const { return _clientMaxBodySize; }
+std::vector<std::string>        ConfigParse::getAllowedMethods() const { return _allowedMethods; }
+std::vector<std::string>        ConfigParse::getIndex() const { return _index; }
+bool                            ConfigParse::getAutoindex() const { return _autoindex; }
+bool                            ConfigParse::getUploadEnable() const { return _uploadEnable; }
+std::string                     ConfigParse::getUploadPath() const { return _uploadPath; }
+std::string                     ConfigParse::getCgiPath() const { return _cgiPath; } //it's not the right type of variable
+std::string                     ConfigParse::getCgiExtension() const { return _cgiExtension; } //it's not the right type of variable
+std::string                     ConfigParse::getAlias() const { return _alias; }

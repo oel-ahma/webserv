@@ -2,15 +2,16 @@
 # define _SERVER_HPP
 
 #include "header.hpp"
-#include "config.hpp"
-#include "request.hpp"
-#include "response.hpp"
+
+class ConfigParse;
+class Response;
+class Request;
 
 class Server
 {
 	public:
 		Server();
-		Server(Config const &conf);
+		Server(ConfigParse const &conf);
 		Server(Server const &other);
 		~Server();
 
@@ -22,11 +23,14 @@ class Server
 		//GETTERS
 		int						get_socket_server() const;
 		int						get_port() const;
+		bool					getReady();
+
 
 	private:
 		int							socket_server;//TODO: const ?
-		uint32_t					PORT = 8080;//TODO: const ?
-		std::string					root = "/www";
+		uint32_t					PORT;//TODO: const ?
+		std::string					root;
+		std::string					index;
 		std::vector<struct pollfd>	fds;
 		std::map<int, Request>		client_buff;
 		std::map<int, Response>		response_buff;	//TODO: Class response ? mettre le buffer CHAR dans la class response
