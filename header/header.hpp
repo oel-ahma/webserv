@@ -12,6 +12,7 @@
 
 #include <sys/socket.h> // For socket functions
 #include <netinet/in.h> // For sockaddr_in
+#include <arpa/inet.h>
 #include <cstdlib> // For exit() and EXIT_FAILURE
 #include <iostream> // For cout
 #include <unistd.h> // For read
@@ -24,6 +25,7 @@
 #include <cstdlib>
 #include <poll.h>
 #include <cerrno>
+
 
 //C fcts
 #include <stdio.h>

@@ -47,13 +47,13 @@ void	Response::setIndex(std::string str) { this->_index = str; }
 /* ************************************************************************** */
 
 
-void	Response::prepareResponse(Request *request) {
+void	Response::prepareResponse(Request *request, std::map<int, std::string> errorPages) {
 	if (this->file_stream.is_open() == false) {
 		// std::cout << "creation du fichier pour l'envoi." << std::endl;
 		this->CreateTmpFile();
 	}
 	//Generate A Response From Request.
-	this->createResponse(request);
+	this->createResponse(request, errorPages);
 	//Put The Response In the File.
 	this->file_stream << this->_response;
 	//Fill The Buffer From the File.
@@ -79,12 +79,31 @@ void	Response::CreateTmpFile() {
 	// std::cout << "fd " << this->file_fd << " is created as " << this->file_name << std::endl; //DEBUG
 }
 
-void Response::createResponse(Request *request) {
+void Response::createResponse(Request *request, std::map<int, std::string> errorPages) {
 	this->_request = request;
+
 	if (this->_request->getMethod() == "GET")
 		this->httpGetMethod();
 	if (this->_request->getMethod() == "POST")
 		this->httpPostMethod();
+	if (this->_request->getStatusCode() != 200)
+	{
+		std::fstream errfile;
+		std::string error_path;
+		error_path = errorPages[this->_request->getStatusCode()];
+		errfile.open(error_path, std::fstream::in | std::fstream::out);
+		if (!errfile.fail())
+		{
+			std::string errbuff((std::istreambuf_iterator<char>(errfile)), std::istreambuf_iterator<char>());
+			this->_body = errbuff + "\r\n";
+		}
+		else
+		{
+				this->_request->setStatusCode(500);
+				this->_body = "<!doctype html><html><head><title>500 Internal Server Error</title><h1><b>Error 500</b></h1><h2>Internal Server Error</h2></head></html>\r\n";
+		}
+		errfile.close();
+	}
 	this->_statusLine = this->_request->getVersion() + " " + std::to_string(this->_request->getStatusCode()) + " " + this->_statusMsg[this->_request->getStatusCode()] + "\r\n";
 	this->setHeaders();
 	this->_response = this->_statusLine + this->_headers + this->_body;
@@ -97,8 +116,8 @@ int	Response::httpGetMethod() {
 	tmp_path = "." + this->_root + this->_request->getPath();
 	if (this->_request->getPath() == "/")
 		tmp_path += this->_index;
-	else
-		tmp_path += ".html";
+	/*else
+		tmp_path += ".html";*/
 	file.open(tmp_path, std::fstream::in | std::fstream::out);
 	if (!file.fail())
 	{
@@ -106,16 +125,13 @@ int	Response::httpGetMethod() {
 		this->_body = buff + "\r\n";
 	}
 	else
-	{
-		this->_body = "<!doctype html><html><head><title>404 Page Not Found!</title><h1><b>Error 404</b></h1><h2>Page Not Found</h2></head></html>\r\n";
 		this->_request->setStatusCode(404);
-	}
 	file.close();
 	return 0;
 }
 
 int Response::httpPostMethod() {
-	std::cout << "The Body is: "<< this->_request->getBody() << std::endl;
+	std::cout << YELLOW <<  "The Body is: "<< this->_request->getBody() << RESET << std::endl;
 	return 0;
 }
 
@@ -135,6 +151,7 @@ void	Response::initStatusCodeMsg() {
 	_statusMsg[400] = "BAD REQUEST";
 	_statusMsg[403] = "FORBIDDEN";
 	_statusMsg[404] = "NOT FOUND";
+	_statusMsg[413] = "PAYLOAD TOO LARGE";
 	_statusMsg[415] = "UNSUPPORTED MEDIA TYPE";
 	_statusMsg[500] = "INTERNAL SERVER ERROR";
 	_statusMsg[502] = "BAD GATEWAY";

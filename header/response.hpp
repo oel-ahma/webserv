@@ -15,9 +15,9 @@ class Response {
 
 		Response &operator=(Response const &other);
 
-		void	prepareResponse(Request *request);
+		void	prepareResponse(Request *request, std::map<int, std::string> errorPages);
 		void	CreateTmpFile();
-		void	createResponse(Request *request);
+		void	createResponse(Request *request, std::map<int, std::string> errorPages);
 		void	initStatusCodeMsg();
 		
 		//Setters

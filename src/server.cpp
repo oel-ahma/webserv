@@ -5,13 +5,15 @@
 /*                                CONSTRUCTORS                                */
 /* ************************************************************************** */
 
-Server::Server(ConfigParse const &conf) {
+Server::Server(ConfigParse const &conf) : ready(false) {
 	this->root = conf.getRoot();
-	std::vector<std::string> tmpI = conf.getIndex(); 
+	this->clientMaxBodySize = conf.getClientMaxBodySize();
+	this->errorPages = conf.getErrorPages();
+	std::vector<std::string> tmpI = conf.getIndex();
 	this->index = tmpI[0];
 	std::vector<t_listen> tmp = conf.getListen();
 	this->PORT = tmp[0].port;
-	this->ready = false;
+	this->host = tmp[0].host;
 	//TODO: Here Initialize (port, host, root,...) With Config File Data 
 }
 
@@ -38,6 +40,8 @@ Server & Server::operator=(Server const &other) {
 	this->index = other.index;
 	this->fds = other.fds;
 	this->ready = other.ready;
+	this->errorPages = other.errorPages;
+	this->clientMaxBodySize = other.clientMaxBodySize;
 	this->client_buff = other.client_buff;
 	this->response_buff = other.response_buff;
 	return (*this);
@@ -77,7 +81,6 @@ void	Server::set_socket() {
 	int optval = 1;
 	if (setsockopt(this->socket_server, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &optval, sizeof(optval)) == ERROR)
 		throw std::runtime_error("setsockopt(): " + (std::string)strerror(errno));
-
 }
 
 void	Server::bind_server() {
@@ -87,7 +90,7 @@ void	Server::bind_server() {
 	memset((char *)&addrServer, 0, sizeof(addrServer));
 	addrServer.sin_family = PF_INET;
 	addrServer.sin_port = htons(this->PORT);
-	addrServer.sin_addr.s_addr = htonl(INADDR_ANY);
+	addrServer.sin_addr.s_addr = inet_addr(this->host.c_str());
 	if (bind(this->socket_server, (struct sockaddr *)&addrServer, (socklen_t)sizeof(addrServer)) == ERROR)
 		throw std::runtime_error("bind(): " + std::string(strerror(errno)));
 }
@@ -135,7 +138,7 @@ bool Server::send(int socket) {
 		// std::cout << "client " << socket << " has now a response file." << std::endl;
 		response_buff[socket].setRoot(this->root);
 		response_buff[socket].setIndex(this->index);
-		response_buff[socket].prepareResponse(&client_buff[socket]);
+		response_buff[socket].prepareResponse(&client_buff[socket], this->errorPages);
 		std::cout << "file " << this->response_buff[socket].file_name << " is associated with client " << socket << ".\n" << std::endl;
 	}
 	else {
@@ -156,9 +159,10 @@ void	Server::treat_Request(int client) {
 	this->client_buff[client].sizeBuff = 0;
 
 	//*---Request Parsing---*//
-	client_buff[client].parsing(client_buff[client].buff);
+	client_buff[client].parsing(this->client_buff[client].buff);
+	if (client_buff[client].getBody().size() > this->clientMaxBodySize)
+		client_buff[client].setStatusCode(413);
 	//Work In Progress...
-
 }
 
 void	Server::routine() {//listen poll
@@ -197,18 +201,18 @@ void	Server::routine() {//listen poll
 }
 
 void Server::close(std::vector<struct pollfd>::iterator it) {
-	// std::cout << "---------------here1---------------" << std::endl;
-	this->response_buff[it->fd].file_stream.clear();
 	this->client_buff[it->fd].file_stream.clear();
+	this->response_buff[it->fd].file_stream.clear();
 	if (this->client_buff[it->fd].file_stream.is_open()) {
+	// std::cout << "---------------here1---------------" << std::endl;
 		this->client_buff[it->fd].file_stream.close();
 		if (this->client_buff[it->fd].file_stream.fail())
 			throw std::ios_base::failure("failed to close file: " + this->client_buff[it->fd].file_name);
 		if (remove(this->client_buff[it->fd].file_name.c_str()) == ERROR)
 			throw std::runtime_error("remove(): " + std::string(strerror(errno)));
 	}
-	// std::cout << "---------------here2---------------" << std::endl;
 	if (this->response_buff[it->fd].file_stream.is_open()) {
+	// std::cout << "---------------here2---------------" << std::endl;
 		this->response_buff[it->fd].file_stream.close();
 		if (this->response_buff[it->fd].file_stream.fail())
 			throw std::ios_base::failure("failed to close file: " + this->response_buff[it->fd].file_name);
@@ -219,6 +223,6 @@ void Server::close(std::vector<struct pollfd>::iterator it) {
 	this->client_buff.erase(it->fd);
 	this->response_buff.erase(it->fd);
 	this->fds.erase(it);
-	std::cout << "Client " << it->fd << " disconnected" << std::endl;
 	::close(it->fd);
+	std::cout << "Client " << it->fd << " disconnected" << std::endl;
 }

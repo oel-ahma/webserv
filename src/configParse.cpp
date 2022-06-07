@@ -68,10 +68,14 @@ int ConfigParse::parseConfigFile(size_t &i, std::vector<std::string> const confi
 void    ConfigParse::addListen(std::vector<std::string> args)
 {
 	t_listen listen;
-	if (args.size() != 2 || !isNumber(args[0]))
+	if (args.size() != 1)
 		throw ConfigParse::InvalidArgsException();
-	listen.port = std::atoi(args[0].c_str());
-	listen.host = args[1];
+	size_t i = args[0].find_first_of(':');
+	listen.port = std::atoi((args[0].substr(i + 1, std::string::npos)).c_str());
+	if (args[0].substr(0, i) != "localhost")
+		listen.host = args[0].substr(0, i);
+	else
+		listen.host = "127.0.0.1";
 	_listen.push_back(listen);
 
 }
@@ -258,7 +262,7 @@ std::ostream	&operator<<(std::ostream &out, ConfigParse const &server)
     return out;
 }
 
-ConfigParse::ConfigParse() : _clientMaxBodySize(0), _root(""), _autoindex(false), _uploadEnable(false)
+ConfigParse::ConfigParse() : _clientMaxBodySize(500), _root(""), _autoindex(false), _uploadEnable(false)
 {
     initServerParsedMap();
     initLocationParsedMap();

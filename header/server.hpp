@@ -29,11 +29,16 @@ class Server
 	private:
 		int							socket_server;//TODO: const ?
 		uint32_t					PORT;//TODO: const ?
-		std::string					root;
-		std::string					index;
 		std::vector<struct pollfd>	fds;
 		std::map<int, Request>		client_buff;
 		std::map<int, Response>		response_buff;	//TODO: Class response ? mettre le buffer CHAR dans la class response
+
+		std::string					host;
+		std::string					root;
+		std::string					index;
+		size_t						clientMaxBodySize;
+		std::map<int, std::string>  errorPages;
+
 
 		void	set_socket();
 		void	bind_server();

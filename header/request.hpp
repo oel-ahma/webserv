@@ -38,9 +38,6 @@ class Request
 
 		char								buff[BUFF+1];
 		int									sizeBuff;
-		int									tmpFile;
-		std::string							fileName;
-		std::fstream						file;
 
         //Getters
         std::map<std::string, std::string>  getHeaders();
