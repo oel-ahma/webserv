@@ -5,6 +5,7 @@
 #include "request.hpp"
 
 class Request;
+class ConfigParse;
 
 class Response {
 	public:
@@ -15,14 +16,13 @@ class Response {
 
 		Response &operator=(Response const &other);
 
-		void	prepareResponse(Request *request, std::map<int, std::string> errorPages);
+		void	prepareResponse(Request *request, ConfigParse const *config);
 		void	CreateTmpFile();
-		void	createResponse(Request *request, std::map<int, std::string> errorPages);
+		void	createResponse();
+		void	setResponseLocation();
 		void	initStatusCodeMsg();
 		
 		//Setters
-		void	setRoot(std::string root);
-		void	setIndex(std::string index);
 
 		//Http Methods
 		int		httpGetMethod();
@@ -31,7 +31,7 @@ class Response {
 		int		setHeaders();
 
 
-		char	buff[BUFF+1];
+		char	buff[BUFF + 1];
 		int		sizeBuff;
 		bool	responseIsSet;
 		std::string		file_name;
@@ -40,14 +40,13 @@ class Response {
 
 	private:
 		Request								*_request;
+		ConfigParse const					*_config;
 		std::map<size_t, std::string>		_statusMsg;
 		std::string							_statusLine;
 		std::string							_headers;
 		std::string							_body;
 		std::string							_response;
-		
-		std::string							_root;
-		std::string							_index;
+		ConfigParse	const					*_responseLocation;
 };
 
 #endif

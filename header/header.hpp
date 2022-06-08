@@ -62,7 +62,7 @@ template<typename K, typename V>
 void print_map(std::map<K, V> const &m)
 {
     for (auto it = m.begin(); it != m.end(); ++it) { //Carefull auto is C++11
-        std::cout << (*it).first << ": " << (*it).second << "\n";
+        std::cout << YELLOW << "[" << (*it).first << "]: \n" << RESET << (*it).second << std::endl;
     }
 }
 

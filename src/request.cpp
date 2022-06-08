@@ -119,8 +119,7 @@ void    Request::parseFirstLine(std::string const &str)
     }
 }
 
-void Request::initMethodList()
-{
+void Request::initMethodList() {
     _methodList.push_back("GET");
 	_methodList.push_back("DELETE");
 	_methodList.push_back("POST");
@@ -132,32 +131,8 @@ void Request::initMethodList()
 
 }
 
-void Request::initHeaders()
-{
+void Request::initHeaders() {
     this->_headers.clear();
-
-	/*
-    this->_headers["Accept"] = "";
-	this->_headers["Accept-Charsets"] = "";
-	this->_headers["Accept-Language"] = "";
-	this->_headers["Allow"] = ""; 
-	this->_headers["Auth-Scheme"] = ""; 
-	this->_headers["Authorization"] = "";
-	this->_headers["Content-Language"] = "";
-	this->_headers["Content-Length"] = "";
-	this->_headers["Content-Location"] = "";
-	this->_headers["Content-Type"] = "";
-	this->_headers["Date"] = "";
-	this->_headers["Host"] = "";
-	this->_headers["Last-Modified"] = "";
-	this->_headers["Location"] = "";
-	this->_headers["Referer"] = "";
-	this->_headers["Retry-After"] = "";
-	this->_headers["Server"] = "";
-	this->_headers["Transfer-Encoding"] = "";
-	this->_headers["User-Agent"] = "";
-	this->_headers["Www-Authenticate"] = "";
-	this->_headers["Connection"] = "Keep-Alive";*/
 }
 
 Request::Request() : _statusCode(200), sizeBuff(0), file_fd(-1) {
@@ -193,12 +168,12 @@ Request &Request::operator=(Request const &rhs) {
 void								Request::setStatusCode(size_t statusCode) { this->_statusCode = statusCode; }
 
 //Getters
-std::map<std::string, std::string>  Request::getHeaders() { return this->_headers; }
-std::string                         Request::getBody() { return this->_body; }
-size_t                              Request::getStatusCode() { return this->_statusCode; }
-std::string                         Request::getRawString() {return this->_rawString; }
-std::string							Request::getMethod() { return this->_method; }
-std::string							Request::getQuery() { return this->_query; }
-std::string							Request::getPath() {return this->_path; }
-std::string							Request::getVersion() { return this->_version; }
+std::map<std::string, std::string>  Request::getHeaders() const { return this->_headers; }
+std::string                         Request::getBody() const { return this->_body; }
+size_t                              Request::getStatusCode() const { return this->_statusCode; }
+std::string                         Request::getRawString() const {return this->_rawString; }
+std::string							Request::getMethod() const { return this->_method; }
+std::string							Request::getQuery() const { return this->_query; }
+std::string							Request::getPath() const {return this->_path; }
+std::string							Request::getVersion() const { return this->_version; }
 

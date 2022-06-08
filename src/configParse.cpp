@@ -67,17 +67,16 @@ int ConfigParse::parseConfigFile(size_t &i, std::vector<std::string> const confi
 
 void    ConfigParse::addListen(std::vector<std::string> args)
 {
-	t_listen listen;
+	// t_listen listen;
 	if (args.size() != 1)
 		throw ConfigParse::InvalidArgsException();
 	size_t i = args[0].find_first_of(':');
-	listen.port = std::atoi((args[0].substr(i + 1, std::string::npos)).c_str());
+	_listen.port = std::atoi((args[0].substr(i + 1, std::string::npos)).c_str());
 	if (args[0].substr(0, i) != "localhost")
-		listen.host = args[0].substr(0, i);
+		_listen.host = args[0].substr(0, i);
 	else
-		listen.host = "127.0.0.1";
-	_listen.push_back(listen);
-
+		_listen.host = "127.0.0.1";
+	// _listen.push_back(listen);
 }
 
 void    ConfigParse::addRoot(std::vector<std::string> args)
@@ -231,9 +230,7 @@ std::ostream	&operator<<(std::ostream &out, ConfigParse const &server)
     }
     out << std::endl;
     out << "Listen: ";
-    for (std::vector<t_listen>::const_iterator it = server._listen.begin(); it != server._listen.end(); it++) {
-        out << "[port: " << (*it).port << " | host: " << (*it).host << "]" << std::endl;
-    }
+	out << "[port: " << server._listen.port << " | host: " << server._listen.host << "]" << std::endl;
     out << "root: " << server._root << std::endl;
     out << std::endl;
     out << "error_page: \n";
@@ -262,7 +259,7 @@ std::ostream	&operator<<(std::ostream &out, ConfigParse const &server)
     return out;
 }
 
-ConfigParse::ConfigParse() : _clientMaxBodySize(500), _root(""), _autoindex(false), _uploadEnable(false)
+ConfigParse::ConfigParse() : _clientMaxBodySize(500), _autoindex(false), _uploadEnable(false)
 {
     initServerParsedMap();
     initLocationParsedMap();
@@ -305,16 +302,17 @@ ConfigParse &ConfigParse::operator=(ConfigParse const &other)
 	return *this;
 }
 
-std::vector<t_listen>           ConfigParse::getListen() const{ return _listen; }
-std::string                     ConfigParse::getRoot() const { return _root; }
-std::vector<std::string>        ConfigParse::getServerName() const { return _serverName; }
-std::map<int, std::string>      ConfigParse::getErrorPages() const { return _errorPages; }
-long                            ConfigParse::getClientMaxBodySize() const { return _clientMaxBodySize; }
-std::vector<std::string>        ConfigParse::getAllowedMethods() const { return _allowedMethods; }
-std::vector<std::string>        ConfigParse::getIndex() const { return _index; }
-bool                            ConfigParse::getAutoindex() const { return _autoindex; }
-bool                            ConfigParse::getUploadEnable() const { return _uploadEnable; }
-std::string                     ConfigParse::getUploadPath() const { return _uploadPath; }
-std::string                     ConfigParse::getCgiPath() const { return _cgiPath; } //it's not the right type of variable
-std::string                     ConfigParse::getCgiExtension() const { return _cgiExtension; } //it's not the right type of variable
-std::string                     ConfigParse::getAlias() const { return _alias; }
+t_listen				        	ConfigParse::getListen() const{ return _listen; }
+std::string                     	ConfigParse::getRoot() const { return _root; }
+std::vector<std::string>        	ConfigParse::getServerName() const { return _serverName; }
+std::map<int, std::string>     		ConfigParse::getErrorPages() const { return _errorPages; }
+size_t                          	ConfigParse::getClientMaxBodySize() const { return _clientMaxBodySize; }
+std::vector<std::string>        	ConfigParse::getAllowedMethods() const { return _allowedMethods; }
+std::vector<std::string>        	ConfigParse::getIndex() const { return _index; }
+bool                            	ConfigParse::getAutoindex() const { return _autoindex; }
+bool                            	ConfigParse::getUploadEnable() const { return _uploadEnable; }
+std::string                     	ConfigParse::getUploadPath() const { return _uploadPath; }
+std::string                     	ConfigParse::getCgiPath() const { return _cgiPath; } //it's not the right type of variable
+std::string                     	ConfigParse::getCgiExtension() const { return _cgiExtension; } //it's not the right type of variable
+std::string                     	ConfigParse::getAlias() const { return _alias; }
+std::map<std::string, ConfigParse>	ConfigParse::getLocation() const { return _location; }

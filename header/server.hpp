@@ -6,6 +6,7 @@
 class ConfigParse;
 class Response;
 class Request;
+class ConfigParse;
 
 class Server
 {
@@ -22,23 +23,16 @@ class Server
 
 		//GETTERS
 		int						get_socket_server() const;
-		int						get_port() const;
 		bool					getReady();
 
 
 	private:
 		int							socket_server;//TODO: const ?
-		uint32_t					PORT;//TODO: const ?
 		std::vector<struct pollfd>	fds;
 		std::map<int, Request>		client_buff;
 		std::map<int, Response>		response_buff;	//TODO: Class response ? mettre le buffer CHAR dans la class response
-
-		std::string					host;
-		std::string					root;
-		std::string					index;
-		size_t						clientMaxBodySize;
-		std::map<int, std::string>  errorPages;
-
+		bool						ready;
+		const ConfigParse			*config;
 
 		void	set_socket();
 		void	bind_server();
@@ -48,7 +42,6 @@ class Server
 		void	recv(int socket);
 		bool	send(int socket);
 		void	close(std::vector<struct pollfd>::iterator it);
-		bool	ready;
 };
 
 #endif

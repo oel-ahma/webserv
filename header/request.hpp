@@ -40,17 +40,16 @@ class Request
 		int									sizeBuff;
 
         //Getters
-        std::map<std::string, std::string>  getHeaders();
-        std::string                         getBody();
-        size_t                              getStatusCode();
-        std::string                         getRawString();
-		std::string							getMethod();
-		std::string							getQuery();
-		std::string							getPath();
-		std::string							getVersion();
+        std::map<std::string, std::string>  getHeaders() const;
+        std::string                         getBody() const;
+        size_t                              getStatusCode() const;
+        std::string                         getRawString() const;
+		std::string							getMethod() const;
+		std::string							getQuery() const;
+		std::string							getPath() const;
+		std::string							getVersion() const;
         //Setters
-		void								setRoot(std::string str);
-		void								setStatusCode(size_t statusCode);
+		void								setStatusCode(size_t statusCode); 
 		//Added Members 30/05
 		std::string							file_name;
 		int									file_fd;

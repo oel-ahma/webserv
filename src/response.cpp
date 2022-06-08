@@ -5,7 +5,7 @@
 /*                                CONSTRUCTORS                                */
 /* ************************************************************************** */
 
-Response::Response() : sizeBuff(0), responseIsSet(false), file_fd(-1), _body("") {
+Response::Response() : sizeBuff(0), responseIsSet(false), file_fd(-1), _responseLocation(NULL) {
 	memset(buff, 0, BUFF);
 	this->initStatusCodeMsg();
 }
@@ -28,6 +28,14 @@ Response::~Response() {
 Response &Response::operator=(Response const &other) {
 	if (this == &other)
 		return (*this);
+	this->_request = other._request;
+	this->_config = other._config;
+	this->_statusMsg = other._statusMsg;
+	this->_statusLine = other._statusLine;
+	this->_headers = other._headers;
+	this->_body = other._body;
+	this->_response = other._response;
+
 	return (*this);
 }
 
@@ -39,21 +47,23 @@ Response &Response::operator=(Response const &other) {
 /*                                  SETTERS	                                  */
 /* ************************************************************************** */
 
-void	Response::setRoot(std::string str) { this->_root = str; }
-void	Response::setIndex(std::string str) { this->_index = str; }
-
 /* ************************************************************************** */
 /*                              MEMBER FUNCTION                               */
 /* ************************************************************************** */
 
 
-void	Response::prepareResponse(Request *request, std::map<int, std::string> errorPages) {
+void	Response::prepareResponse(Request *request, ConfigParse const *config) {
+	this->_request = request;
+	this->_config = config;
+
+	if (this->_request->getBody().size() > this->_config->getClientMaxBodySize())
+		this->_request->setStatusCode(413);
 	if (this->file_stream.is_open() == false) {
 		// std::cout << "creation du fichier pour l'envoi." << std::endl;
 		this->CreateTmpFile();
 	}
 	//Generate A Response From Request.
-	this->createResponse(request, errorPages);
+	this->createResponse();
 	//Put The Response In the File.
 	this->file_stream << this->_response;
 	//Fill The Buffer From the File.
@@ -79,9 +89,8 @@ void	Response::CreateTmpFile() {
 	// std::cout << "fd " << this->file_fd << " is created as " << this->file_name << std::endl; //DEBUG
 }
 
-void Response::createResponse(Request *request, std::map<int, std::string> errorPages) {
-	this->_request = request;
-
+void Response::createResponse() {
+	setResponseLocation();
 	if (this->_request->getMethod() == "GET")
 		this->httpGetMethod();
 	if (this->_request->getMethod() == "POST")
@@ -90,7 +99,7 @@ void Response::createResponse(Request *request, std::map<int, std::string> error
 	{
 		std::fstream errfile;
 		std::string error_path;
-		error_path = errorPages[this->_request->getStatusCode()];
+		error_path = this->_config->getErrorPages()[this->_request->getStatusCode()];
 		errfile.open(error_path, std::fstream::in | std::fstream::out);
 		if (!errfile.fail())
 		{
@@ -113,9 +122,9 @@ int	Response::httpGetMethod() {
 	std::string tmp_path;
 	std::fstream file;
 
-	tmp_path = "." + this->_root + this->_request->getPath();
+	tmp_path = "." + this->_config->getRoot() + this->_request->getPath();
 	if (this->_request->getPath() == "/")
-		tmp_path += this->_index;
+		tmp_path += this->_config->getIndex().at(0);
 	/*else
 		tmp_path += ".html";*/
 	file.open(tmp_path, std::fstream::in | std::fstream::out);
@@ -144,6 +153,41 @@ int		Response::setHeaders() {
 	this->_headers += "\r\n\r\n";
 
 	return 0;
+}
+
+void	Response::setResponseLocation() {
+	std::map<std::string, ConfigParse>::const_iterator it;
+	std::string tmp = this->_request->getPath();
+
+	// TMP = "/1.html"
+	// TMP = "/inside/3.html"
+	while (1)
+	{
+		it = this->_config->getLocation().find(tmp);
+		print_map(this->_config->getLocation());
+		if (it != this->_config->getLocation().end())
+		{
+			std::cout << RED << "yo" << RESET << std::endl;
+			this->_responseLocation = &(it->second);
+			return ;
+		}
+		std::cout << RED << tmp << RESET << std::endl;
+		if (tmp == "/")
+		{
+			this->_request->setStatusCode(404);
+			return ;
+		}
+		tmp = tmp.substr(0, tmp.rfind("/"));
+		std::cout << RED << tmp << RESET << std::endl;
+		if (tmp.empty())
+			tmp = "/";
+	}
+	if (this->_responseLocation)
+	{
+		std::cout << RED << "heps"; 
+		print_vector(this->_responseLocation->getAllowedMethods());
+		std::cout << RESET;
+	}
 }
 
 void	Response::initStatusCodeMsg() {

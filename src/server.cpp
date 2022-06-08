@@ -5,17 +5,7 @@
 /*                                CONSTRUCTORS                                */
 /* ************************************************************************** */
 
-Server::Server(ConfigParse const &conf) : ready(false) {
-	this->root = conf.getRoot();
-	this->clientMaxBodySize = conf.getClientMaxBodySize();
-	this->errorPages = conf.getErrorPages();
-	std::vector<std::string> tmpI = conf.getIndex();
-	this->index = tmpI[0];
-	std::vector<t_listen> tmp = conf.getListen();
-	this->PORT = tmp[0].port;
-	this->host = tmp[0].host;
-	//TODO: Here Initialize (port, host, root,...) With Config File Data 
-}
+Server::Server(ConfigParse const &conf) : ready(false), config(&conf) {}
 
 Server::Server(Server const &other) {
 	*this = other;
@@ -35,13 +25,9 @@ Server::~Server() {}
 
 Server & Server::operator=(Server const &other) {
 	this->socket_server = other.socket_server;
-	this->PORT = other.PORT;
-	this->root = other.root;
-	this->index = other.index;
 	this->fds = other.fds;
 	this->ready = other.ready;
-	this->errorPages = other.errorPages;
-	this->clientMaxBodySize = other.clientMaxBodySize;
+	this->config = other.config;
 	this->client_buff = other.client_buff;
 	this->response_buff = other.response_buff;
 	return (*this);
@@ -50,10 +36,6 @@ Server & Server::operator=(Server const &other) {
 /* ************************************************************************** */
 /*                                 ACCESSORS                                  */
 /* ************************************************************************** */
-
-int	Server::get_port() const {
-	return (this->PORT);
-}
 
 int		Server::get_socket_server() const {
 	return(this->socket_server);
@@ -89,8 +71,8 @@ void	Server::bind_server() {
 
 	memset((char *)&addrServer, 0, sizeof(addrServer));
 	addrServer.sin_family = PF_INET;
-	addrServer.sin_port = htons(this->PORT);
-	addrServer.sin_addr.s_addr = inet_addr(this->host.c_str());
+	addrServer.sin_port = htons(this->config->getListen().port);
+	addrServer.sin_addr.s_addr = inet_addr(this->config->getListen().host.c_str());
 	if (bind(this->socket_server, (struct sockaddr *)&addrServer, (socklen_t)sizeof(addrServer)) == ERROR)
 		throw std::runtime_error("bind(): " + std::string(strerror(errno)));
 }
@@ -136,9 +118,8 @@ bool Server::send(int socket) {
 	//preparer la reponse avant de l'envoyer
 	if (this->response_buff[socket].responseIsSet == false) {
 		// std::cout << "client " << socket << " has now a response file." << std::endl;
-		response_buff[socket].setRoot(this->root);
-		response_buff[socket].setIndex(this->index);
-		response_buff[socket].prepareResponse(&client_buff[socket], this->errorPages);
+		//HERE PARSING
+		response_buff[socket].prepareResponse(&client_buff[socket], this->config);
 		std::cout << "file " << this->response_buff[socket].file_name << " is associated with client " << socket << ".\n" << std::endl;
 	}
 	else {
@@ -157,11 +138,8 @@ void	Server::treat_Request(int client) {
 	std::cout << "----Traitement de requete pour le socket " << client << "----" << std::endl;
 	this->client_buff[client].file_stream.write(this->client_buff[client].buff, this->client_buff[client].sizeBuff);
 	this->client_buff[client].sizeBuff = 0;
-
 	//*---Request Parsing---*//
 	client_buff[client].parsing(this->client_buff[client].buff);
-	if (client_buff[client].getBody().size() > this->clientMaxBodySize)
-		client_buff[client].setStatusCode(413);
 	//Work In Progress...
 }
 
