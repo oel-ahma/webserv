@@ -28,6 +28,7 @@ class Response {
 		int		httpGetMethod();
 		int		httpPostMethod();
 		int		httpDeleteMethod();
+		int		responseBodyErrorSet();
 		int		setHeaders();
 
 
@@ -43,10 +44,12 @@ class Response {
 		ConfigParse const					*_config;
 		std::map<size_t, std::string>		_statusMsg;
 		std::string							_statusLine;
+		std::string							_path;
 		std::string							_headers;
 		std::string							_body;
 		std::string							_response;
 		ConfigParse	const					*_responseLocation;
+
 };
 
 #endif

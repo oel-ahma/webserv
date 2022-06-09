@@ -120,10 +120,10 @@ bool Server::send(int socket) {
 		// std::cout << "client " << socket << " has now a response file." << std::endl;
 		//HERE PARSING
 		response_buff[socket].prepareResponse(&client_buff[socket], this->config);
-		std::cout << "file " << this->response_buff[socket].file_name << " is associated with client " << socket << ".\n" << std::endl;
+		// std::cout << "file " << this->response_buff[socket].file_name << " is associated with client " << socket << ".\n" << std::endl;
 	}
 	else {
-		std::cout << "We are sending this message:\n" << this->response_buff[socket].buff << "\n" << std::endl;
+		// std::cout << "We are sending this message:\n" << this->response_buff[socket].buff << "\n" << std::endl;
 		if (::send(socket, this->response_buff[socket].buff, this->response_buff[socket].sizeBuff, 0) == ERROR)
 			throw std::runtime_error("send(): " + std::string(strerror(errno)));
 		this->response_buff[socket].responseIsSet = false;
@@ -135,7 +135,7 @@ bool Server::send(int socket) {
 
 void	Server::treat_Request(int client) {
 	//TODO: write le buffer dans le fichier temporaire du client_buff
-	std::cout << "----Traitement de requete pour le socket " << client << "----" << std::endl;
+	// std::cout << "----Traitement de requete pour le socket " << client << "----" << std::endl;
 	this->client_buff[client].file_stream.write(this->client_buff[client].buff, this->client_buff[client].sizeBuff);
 	this->client_buff[client].sizeBuff = 0;
 	//*---Request Parsing---*//

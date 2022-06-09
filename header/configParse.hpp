@@ -29,8 +29,8 @@ class ConfigParse
         std::vector<std::string>        	getServerName() const;
         std::map<int, std::string>      	getErrorPages() const;
         size_t                          	getClientMaxBodySize() const;
-        std::vector<std::string>        	getAllowedMethods() const;
-        std::vector<std::string>        	getIndex() const;
+        std::set<std::string>      		  	getAllowedMethods() const;
+        std::string				        	getIndex() const;
         bool                            	getAutoindex() const;
         bool                            	getUploadEnable() const;
         std::string                     	getUploadPath() const;
@@ -69,8 +69,8 @@ class ConfigParse
         std::string                     	_root;
         std::vector<std::string>        	_serverName;
         std::map<int, std::string>      	_errorPages;
-        std::vector<std::string>        	_allowedMethods;
-        std::vector<std::string>        	_index;
+        std::set<std::string>        		_allowedMethods;
+        std::string				        	_index;
         bool                            	_autoindex;
         bool                            	_uploadEnable;
         std::string                     	_uploadPath;

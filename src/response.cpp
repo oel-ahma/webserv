@@ -27,16 +27,21 @@ Response::~Response() {
 
 Response &Response::operator=(Response const &other) {
 	if (this == &other)
-		return (*this);
+		return *this;
+	// this->sizeBuff = other.sizeBuff;
+	// this->responseIsSet = other.responseIsSet;
+	// this->file_name = other.file_name;
+	// this->file_fd = other.file_fd;
 	this->_request = other._request;
 	this->_config = other._config;
 	this->_statusMsg = other._statusMsg;
 	this->_statusLine = other._statusLine;
+	this->_path = other._path;
 	this->_headers = other._headers;
 	this->_body = other._body;
 	this->_response = other._response;
-
-	return (*this);
+	this->_responseLocation = other._responseLocation;
+	return *this;
 }
 
 /* ************************************************************************** */
@@ -69,7 +74,7 @@ void	Response::prepareResponse(Request *request, ConfigParse const *config) {
 	//Fill The Buffer From the File.
 	this->file_stream.close();
 	this->file_stream.open(this->file_name.c_str(), std::fstream::in | std::fstream::out);
-	this->file_stream.read(this->buff, BUFF);//TODO: read() ne semble pas fonctionner. il read 0 char. Pourquoi ?
+	this->file_stream.read(this->buff, BUFF);
 	if (this->file_stream.bad())
 			throw std::ios_base::failure("failed to read file: " + this->file_name);
 	this->sizeBuff = this->file_stream.gcount();
@@ -91,43 +96,35 @@ void	Response::CreateTmpFile() {
 
 void Response::createResponse() {
 	setResponseLocation();
-	if (this->_request->getMethod() == "GET")
-		this->httpGetMethod();
-	if (this->_request->getMethod() == "POST")
-		this->httpPostMethod();
-	if (this->_request->getStatusCode() != 200)
+	this->_path =  "." + this->_config->getRoot() + this->_responseLocation->getRoot() + this->_request->getPath();
+	if (this->_request->getPath() == "/")
+		this->_path += this->_responseLocation->getIndex();
+	/*else
+		this->_path += ".html";*/
+	if (!_responseLocation->getAllowedMethods().count(_request->getMethod()))
+		this->_request->setStatusCode(405);
+	else
 	{
-		std::fstream errfile;
-		std::string error_path;
-		error_path = this->_config->getErrorPages()[this->_request->getStatusCode()];
-		errfile.open(error_path, std::fstream::in | std::fstream::out);
-		if (!errfile.fail())
-		{
-			std::string errbuff((std::istreambuf_iterator<char>(errfile)), std::istreambuf_iterator<char>());
-			this->_body = errbuff + "\r\n";
-		}
-		else
-		{
-				this->_request->setStatusCode(500);
-				this->_body = "<!doctype html><html><head><title>500 Internal Server Error</title><h1><b>Error 500</b></h1><h2>Internal Server Error</h2></head></html>\r\n";
-		}
-		errfile.close();
+		if (this->_request->getMethod() == "GET")
+			this->httpGetMethod();
+		if (this->_request->getMethod() == "POST")
+			this->httpPostMethod();
+		if (this->_request->getMethod() == "DELETE")
+			this->httpDeleteMethod();
 	}
+	if (this->_request->getStatusCode() != 200)
+		this->responseBodyErrorSet();
+	
 	this->_statusLine = this->_request->getVersion() + " " + std::to_string(this->_request->getStatusCode()) + " " + this->_statusMsg[this->_request->getStatusCode()] + "\r\n";
 	this->setHeaders();
 	this->_response = this->_statusLine + this->_headers + this->_body;
+
 }
 
 int	Response::httpGetMethod() {
-	std::string tmp_path;
 	std::fstream file;
 
-	tmp_path = "." + this->_config->getRoot() + this->_request->getPath();
-	if (this->_request->getPath() == "/")
-		tmp_path += this->_config->getIndex().at(0);
-	/*else
-		tmp_path += ".html";*/
-	file.open(tmp_path, std::fstream::in | std::fstream::out);
+	file.open(this->_path, std::fstream::in | std::fstream::out);
 	if (!file.fail())
 	{
 		std::string buff((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -144,6 +141,11 @@ int Response::httpPostMethod() {
 	return 0;
 }
 
+int Response::httpDeleteMethod() {
+	// std::cout << YELLOW <<  "The Body is: "<< this->_request->getBody() << RESET << std::endl;
+	return 0;
+}
+
 int		Response::setHeaders() {
 	//TODO: Which Headers to Put in...
 	this->_headers += "Version: " + this->_request->getVersion() + "\r\n";
@@ -155,38 +157,48 @@ int		Response::setHeaders() {
 	return 0;
 }
 
+int 	Response::responseBodyErrorSet() {
+	std::fstream errfile;
+	std::string error_path;
+
+	error_path = this->_config->getErrorPages()[this->_request->getStatusCode()];
+	errfile.open(error_path, std::fstream::in | std::fstream::out);
+	if (!errfile.fail())
+	{
+		std::string errbuff((std::istreambuf_iterator<char>(errfile)), std::istreambuf_iterator<char>());
+		this->_body = errbuff + "\r\n";
+	}
+	else
+	{
+		this->_request->setStatusCode(500);
+		this->_body = "<!doctype html><html><head><title>500 Internal Server Error</title><h1><b>Error 500</b></h1><h2>Internal Server Error</h2></head></html>\r\n";
+	}
+	errfile.close();
+	return 0;
+}
 void	Response::setResponseLocation() {
+	std::map<std::string, ConfigParse> tmpConf(this->_config->getLocation());
+	std::string tmpPath = this->_request->getPath();
 	std::map<std::string, ConfigParse>::const_iterator it;
-	std::string tmp = this->_request->getPath();
 
 	// TMP = "/1.html"
 	// TMP = "/inside/3.html"
 	while (1)
 	{
-		it = this->_config->getLocation().find(tmp);
-		print_map(this->_config->getLocation());
-		if (it != this->_config->getLocation().end())
+		it = tmpConf.find(tmpPath);
+		if (it != tmpConf.end())
 		{
-			std::cout << RED << "yo" << RESET << std::endl;
 			this->_responseLocation = &(it->second);
 			return ;
 		}
-		std::cout << RED << tmp << RESET << std::endl;
-		if (tmp == "/")
+		if (tmpPath == "/")
 		{
 			this->_request->setStatusCode(404);
 			return ;
 		}
-		tmp = tmp.substr(0, tmp.rfind("/"));
-		std::cout << RED << tmp << RESET << std::endl;
-		if (tmp.empty())
-			tmp = "/";
-	}
-	if (this->_responseLocation)
-	{
-		std::cout << RED << "heps"; 
-		print_vector(this->_responseLocation->getAllowedMethods());
-		std::cout << RESET;
+		tmpPath = tmpPath.substr(0, tmpPath.rfind("/"));
+		if (tmpPath.empty())
+			tmpPath = "/";
 	}
 }
 
@@ -195,6 +207,7 @@ void	Response::initStatusCodeMsg() {
 	_statusMsg[400] = "BAD REQUEST";
 	_statusMsg[403] = "FORBIDDEN";
 	_statusMsg[404] = "NOT FOUND";
+	_statusMsg[405] = "METHOD NOT ALLOWED";
 	_statusMsg[413] = "PAYLOAD TOO LARGE";
 	_statusMsg[415] = "UNSUPPORTED MEDIA TYPE";
 	_statusMsg[500] = "INTERNAL SERVER ERROR";

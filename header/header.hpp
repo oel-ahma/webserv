@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <set>
 #include <map>
 #include <cstdlib>
 #include <poll.h>

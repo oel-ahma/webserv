@@ -113,16 +113,15 @@ void    ConfigParse::addAllowedMethods(std::vector<std::string> args)
     if (args.size() == 0)
         throw ConfigParse::InvalidArgsException();
     for (size_t i = 0; i < args.size(); i++)
-        this->_allowedMethods.push_back(args[i]);
+		this->_allowedMethods.insert(args[i]);
 
 }
 
 void    ConfigParse::addIndex(std::vector<std::string> args)
 {
-    if (args.size() == 0)
-        throw ConfigParse::InvalidArgsException();
-    for (size_t i = 0; i < args.size(); i++)
-        _index.push_back(args[i]);    
+    if (args.size() != 1)
+		throw ConfigParse::InvalidArgsException();
+	this->_index = args[0];    
 }
 
 void    ConfigParse::addAutoIndex(std::vector<std::string> args)
@@ -242,14 +241,12 @@ std::ostream	&operator<<(std::ostream &out, ConfigParse const &server)
     out << "cgi_path:" << server._cgiPath << std::endl;
     out << "cgi_Extension:	" << server._cgiExtension << std::endl;
     out << "allowed methods:";
-    for (std::vector<std::string>::const_iterator i = server._allowedMethods.begin(); i != server._allowedMethods.end(); i++)
+    for (std::set<std::string>::const_iterator i = server._allowedMethods.begin(); i != server._allowedMethods.end(); i++)
         out << " " << *i;
     out << std::endl;
     out << "autoindex: " << server._autoindex << std::endl;
     out << "index: ";
-    for (std::vector<std::string>::const_iterator i = server._index.begin(); i != server._index.end(); i++)
-        out << *i << " ";
-    out << std::endl;
+	out << server._index << std::endl;
     out << "alias: " << server._alias << std::endl;
     out << "locations: ";
     for (std::map<std::string, ConfigParse>::const_iterator i = server._location.begin(); i != server._location.end(); i++) {
@@ -261,6 +258,7 @@ std::ostream	&operator<<(std::ostream &out, ConfigParse const &server)
 
 ConfigParse::ConfigParse() : _clientMaxBodySize(500), _autoindex(false), _uploadEnable(false)
 {
+	_listen.port = 0;
     initServerParsedMap();
     initLocationParsedMap();
 }
@@ -307,8 +305,8 @@ std::string                     	ConfigParse::getRoot() const { return _root; }
 std::vector<std::string>        	ConfigParse::getServerName() const { return _serverName; }
 std::map<int, std::string>     		ConfigParse::getErrorPages() const { return _errorPages; }
 size_t                          	ConfigParse::getClientMaxBodySize() const { return _clientMaxBodySize; }
-std::vector<std::string>        	ConfigParse::getAllowedMethods() const { return _allowedMethods; }
-std::vector<std::string>        	ConfigParse::getIndex() const { return _index; }
+std::set<std::string>        		ConfigParse::getAllowedMethods() const { return _allowedMethods; }
+std::string				        	ConfigParse::getIndex() const { return _index; }
 bool                            	ConfigParse::getAutoindex() const { return _autoindex; }
 bool                            	ConfigParse::getUploadEnable() const { return _uploadEnable; }
 std::string                     	ConfigParse::getUploadPath() const { return _uploadPath; }
