@@ -15,13 +15,14 @@ void	Request::CreatetTmpFile() {
 Request::Request(std::string const &str) : 
     _body(""), _statusCode(200), _rawString(str)
 {
-    parsing(str);
+    parsing(*this);
     if (this->_statusCode != 200)
         std::cerr << "Parsing Error : " << this->_statusCode << std::endl;
 }
 
-void Request::parsing(std::string const &str)
+void Request::parsing(Request & client)
 {
+	char			*str;
     std::string		line;
 	std::string     key;
     std::string     value;
@@ -31,9 +32,11 @@ void Request::parsing(std::string const &str)
 	initHeaders();
     initMethodList();
 	this->_statusCode = 200;
-    parseFirstLine(gnl(str, i));
+	this->file_stream.getline(str, BUFF+100);//TODO:
+	parseFirstLine(gnl(str, i));
+	this->file_stream.getline(str, BUFF+100);//TODO: ne pas extract
     while(((line = gnl(str, i)) != "") && _statusCode != 400)
-    {
+	{
         j = line.find_first_of(':');
         key = line.substr(0, j);
         value = line.substr(j + 2, std::string::npos);

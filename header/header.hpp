@@ -3,7 +3,7 @@
 
 #define ERROR	-1
 #define BACKLOG	1024
-#define BUFF	1024
+#define BUFF	2
 
 #define RED		"\033[0;31m"
 #define YELLOW	"\033[0;33m"

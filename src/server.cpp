@@ -119,6 +119,7 @@ bool Server::send(int socket) {
 	if (this->response_buff[socket].responseIsSet == false) {
 		// std::cout << "client " << socket << " has now a response file." << std::endl;
 		//HERE PARSING
+		client_buff[socket].parsing(this->client_buff[socket]);
 		response_buff[socket].prepareResponse(&client_buff[socket], this->config);
 		// std::cout << "file " << this->response_buff[socket].file_name << " is associated with client " << socket << ".\n" << std::endl;
 	}
@@ -139,11 +140,10 @@ void	Server::treat_Request(int client) {
 	this->client_buff[client].file_stream.write(this->client_buff[client].buff, this->client_buff[client].sizeBuff);
 	this->client_buff[client].sizeBuff = 0;
 	//*---Request Parsing---*//
-	client_buff[client].parsing(this->client_buff[client].buff);
 	//Work In Progress...
 }
 
-void	Server::routine() {//listen poll
+void	Server::routine() {
 	if (poll(&fds[0], fds.size(), 0) != ERROR) {
 		if (this->ready == false)
 			this->listen_server();
