@@ -68,6 +68,7 @@ int ConfigParse::parseConfigFile(size_t &i, std::vector<std::string> const confi
 void    ConfigParse::addListen(std::vector<std::string> args)
 {
 	// t_listen listen;
+	// parsing handle for not the right way to right it
 	if (args.size() != 1)
 		throw ConfigParse::InvalidArgsException();
 	size_t i = args[0].find_first_of(':');
@@ -113,8 +114,7 @@ void    ConfigParse::addAllowedMethods(std::vector<std::string> args)
     if (args.size() == 0)
         throw ConfigParse::InvalidArgsException();
     for (size_t i = 0; i < args.size(); i++)
-		this->_allowedMethods.insert(args[i]);
-
+		this->_allowedMethods.push_back(args[i]);
 }
 
 void    ConfigParse::addIndex(std::vector<std::string> args)
@@ -212,9 +212,9 @@ void ConfigParse::initLocationParsedMap()
     _locationParsedMap["autoindex"] = &ConfigParse::addAutoIndex;
     _locationParsedMap["cgi_path"] = &ConfigParse::addCgiPath;
     _locationParsedMap["cgi_extension"] = &ConfigParse::addCgiExtension;
-    _locationParsedMap["alias"] = &ConfigParse::addAlias;
+    _locationParsedMap["alias"] = &ConfigParse::addAlias; 
     
-    _locationParsedMap["upload_enable"] = &ConfigParse::addUploadEnable;
+	_locationParsedMap["upload_enable"] = &ConfigParse::addUploadEnable;
     _locationParsedMap["upload_path"] = &ConfigParse::addUploadPath;
 
 }
@@ -241,7 +241,7 @@ std::ostream	&operator<<(std::ostream &out, ConfigParse const &server)
     out << "cgi_path:" << server._cgiPath << std::endl;
     out << "cgi_Extension:	" << server._cgiExtension << std::endl;
     out << "allowed methods:";
-    for (std::set<std::string>::const_iterator i = server._allowedMethods.begin(); i != server._allowedMethods.end(); i++)
+    for (std::vector<std::string>::const_iterator i = server._allowedMethods.begin(); i != server._allowedMethods.end(); i++)
         out << " " << *i;
     out << std::endl;
     out << "autoindex: " << server._autoindex << std::endl;
@@ -278,6 +278,8 @@ ConfigParse::ConfigParse(ConfigParse const &other)
     this->_allowedMethods = other._allowedMethods;
     this->_autoindex = other._autoindex;
     this->_index = other._index;
+	this->_uploadPath = other._uploadPath;
+	this->_uploadEnable = other._uploadEnable;
     this->_alias = other._alias;
 }
 
@@ -294,6 +296,8 @@ ConfigParse &ConfigParse::operator=(ConfigParse const &other)
 		this->_location = other._location;
 		this->_allowedMethods = other._allowedMethods;
 		this->_autoindex = other._autoindex;
+		this->_uploadPath = other._uploadPath;
+		this->_uploadEnable = other._uploadEnable;
 		this->_index = other._index;
 		this->_alias = other._alias;
 	}
@@ -305,7 +309,7 @@ std::string                     	ConfigParse::getRoot() const { return _root; }
 std::vector<std::string>        	ConfigParse::getServerName() const { return _serverName; }
 std::map<int, std::string>     		ConfigParse::getErrorPages() const { return _errorPages; }
 size_t                          	ConfigParse::getClientMaxBodySize() const { return _clientMaxBodySize; }
-std::set<std::string>        		ConfigParse::getAllowedMethods() const { return _allowedMethods; }
+std::vector<std::string>        	ConfigParse::getAllowedMethods() const { return _allowedMethods; }
 std::string				        	ConfigParse::getIndex() const { return _index; }
 bool                            	ConfigParse::getAutoindex() const { return _autoindex; }
 bool                            	ConfigParse::getUploadEnable() const { return _uploadEnable; }

@@ -19,7 +19,7 @@ class Response {
 		void	prepareResponse(Request *request, ConfigParse const *config);
 		void	CreateTmpFile();
 		void	createResponse();
-		void	setResponseLocation();
+		// void	setResponseLocation();
 		void	initStatusCodeMsg();
 		
 		//Setters

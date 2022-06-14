@@ -2,8 +2,8 @@
 # define HEADER_HPP
 
 #define ERROR	-1
-#define BACKLOG	1024
-#define BUFF	1024
+#define BACKLOG	102400
+#define BUFF	102400
 
 #define RED		"\033[0;31m"
 #define YELLOW	"\033[0;33m"
@@ -26,12 +26,17 @@
 #include <cstdlib>
 #include <poll.h>
 #include <cerrno>
+#include <ctime>
 
 
 //C fcts
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
 
 typedef struct	s_listen
 {
@@ -51,6 +56,9 @@ typedef struct	s_listen
 
 
 bool isNumber(const std::string& s);
+bool isFile(std::string const &path);
+bool isDirectory(std::string const &path);
+void removeDoubleSlash(std::string &str);
 
 template<typename T>
 void print_vector(std::vector<T> const &vec)
