@@ -32,9 +32,9 @@ void Request::parsing(Request & client)
 	initHeaders();
     initMethodList();
 	this->_statusCode = 200;
-	this->file_stream.getline(str, BUFF+100);//TODO:
+	this->file_stream.getline(str, BUFF+100);//TODO: ne pas extract ?
 	parseFirstLine(gnl(str, i));
-	this->file_stream.getline(str, BUFF+100);//TODO: ne pas extract
+	this->file_stream.getline(str, BUFF+100);//TODO: ne pas extract ?
     while(((line = gnl(str, i)) != "") && _statusCode != 400)
 	{
         j = line.find_first_of(':');

@@ -16,6 +16,7 @@ class Response {
 
 		Response &operator=(Response const &other);
 
+		void	fillBuffer();
 		void	prepareResponse(Request *request, ConfigParse const *config);
 		void	CreateTmpFile();
 		void	createResponse();
@@ -32,9 +33,9 @@ class Response {
 		int		setHeaders();
 
 
-		char	buff[BUFF + 1];
-		int		sizeBuff;
-		bool	responseIsSet;
+		char			buff[BUFF + 1];
+		int				sizeBuff;
+		bool			responseIsSet;
 		std::string		file_name;
 		int 			file_fd;
 		std::fstream	file_stream;
