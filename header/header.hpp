@@ -2,8 +2,8 @@
 # define HEADER_HPP
 
 #define ERROR	-1
-#define BACKLOG	102400
-#define BUFF	102400
+#define BACKLOG	65535
+#define BUFF	65535
 
 #define RED		"\033[0;31m"
 #define YELLOW	"\033[0;33m"
