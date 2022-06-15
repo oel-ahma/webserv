@@ -1,34 +1,22 @@
-<!-- <form action="../uploads" method="post">
-    <div>
-        <label for="name">Nom :</label>
-        <input type="text" id="name" name="user_name">
-    </div>
-    <div>
-        <label for="mail">e-mail&nbsp;:</label>
-        <input type="email" id="mail" name="user_mail">
-    </div>
-    <div>
-        <label for="msg">Message :</label>
-        <textarea id="msg" name="user_message"></textarea>
-    </div>
-	<div class="button">
-        <button type="submit">Envoyer le message</button>
-    </div>
-</form>
- -->
-
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
-	<link rel="icon" href="data:;base64,=">
+
 <body>
 
-<form action="uploads" method="post" enctype="multipart/form-data">
-  Select image to upload:
-  <input type="file" name="fileToUpload" id="fileToUpload">
-  <input type="submit" value="Upload Image" name="submit">
-</form>
+	<form action="./uploads/uploadfiles.php" method="post" enctype="multipart/form-data">
+
+ss		<input name="profile_picture" type="file">
+		
+		<input type="submit" value="Upload Now">
+		
+	</form>
 
 </body>
-</html>
+</html> -->
 
-  
+<form method="POST" action="/uploads" enctype="multipart/form-data">
+	<span>	<br/><br/><br/><div class="cover"><h1>Choose file to upload</h1><br/></span>
+
+		<input type="file" name="uploadedFile" />
+<input type="submit" name="uploadBtn" value="Upload" />
+</form>

@@ -1,26 +1,9 @@
 // #include "request.hpp"
 #include "../header/request.hpp" //TODO:
 
-void	Request::CreatetTmpFile() {
-	this->file_name = "/tmp/request_XXXXXX";
-	this->file_fd = mkstemp(&(*file_name.begin()));
-	if (this->file_fd == ERROR)
-			throw std::runtime_error("mkstemp(): " + (std::string)strerror(errno));
-	this->file_stream.open(this->file_name.c_str(), std::fstream::in | std::fstream::out);
-	if (this->file_stream.fail())
-		throw std::ios_base::failure("failed to open file: " + this->file_name);
-	// std::cout << "file name of socket " << this->ClientSocket << " is " << this->file_name << std::endl; //DEBUG
-}
 
-Request::Request(std::string const &str) : 
-    _body(""), _statusCode(200), _rawString(str)
-{
-    parsing(str);
-    if (this->_statusCode != 200)
-        std::cerr << "Parsing Error : " << this->_statusCode << std::endl;
-}
 
-void Request::parsing(std::string const &str)
+void Request::parsing()
 {
     std::string		line;
 	std::string     key;
@@ -31,8 +14,8 @@ void Request::parsing(std::string const &str)
 	initHeaders();
     initMethodList();
 	this->_statusCode = 200;
-    parseFirstLine(gnl(str, i));
-    while(((line = gnl(str, i)) != "") && _statusCode != 400)
+    parseFirstLine(gnl(_request, i));
+    while(((line = gnl(_request, i)) != "") && _statusCode != 400)
     {
         j = line.find_first_of(':');
         key = line.substr(0, j);
@@ -40,7 +23,8 @@ void Request::parsing(std::string const &str)
         //if (_headers.count(key))
 		_headers[key] = value;
     }
-	_body = str.substr(i, std::string::npos);
+	if (_statusCode == 200)
+		_body = _request.substr(i, std::string::npos);
 }
 
 std::string Request::gnl(std::string const &str, size_t &i)
@@ -100,6 +84,7 @@ void    Request::parseFirstLine(std::string const &str)
         return ;
     }
     _path.assign(line, 0, i);
+	replacePercent20BySpaces(_path);
     //GET QUERY
     j = _path.find_first_of('?');
     if (j != std::string::npos)
@@ -135,8 +120,16 @@ void Request::initHeaders() {
     this->_headers.clear();
 }
 
-Request::Request() : _statusCode(200), sizeBuff(0), file_fd(-1) {
+Request::Request() : _statusCode(200), sizeBuff(0) {
 	memset(buff, 0, BUFF);
+}
+//Check THAT v
+Request::Request(std::string const &str) : 
+    _body(""), _statusCode(200), _rawString(str)
+{
+    parsing();
+    if (this->_statusCode != 200)
+        std::cerr << "Parsing Error : " << this->_statusCode << std::endl;
 }
 
 Request::~Request(){}
@@ -157,15 +150,16 @@ Request &Request::operator=(Request const &rhs) {
     this->_body = rhs._body;
     this->_statusCode = rhs._statusCode;
     this->_rawString = rhs._rawString;
+	this->_request = rhs._request;
 	this->sizeBuff = rhs.sizeBuff;
-	this->file_name = rhs.file_name;
-	this->file_fd = rhs.file_fd;
 	this->ClientSocket = rhs.ClientSocket;
 	strcpy(this->buff, rhs.buff);
     return (*this);
 }
 
 void								Request::setStatusCode(size_t statusCode) { this->_statusCode = statusCode; }
+void								Request::setVersion(std::string const &str) { this->_version = str; }
+void								Request::setRequest(char *buff, int size) { this->_request.append(buff, size); }
 
 //Getters
 std::map<std::string, std::string>  Request::getHeaders() const { return this->_headers; }
@@ -176,4 +170,6 @@ std::string							Request::getMethod() const { return this->_method; }
 std::string							Request::getQuery() const { return this->_query; }
 std::string							Request::getPath() const {return this->_path; }
 std::string							Request::getVersion() const { return this->_version; }
+std::string							Request::getRequest() const { return this->_request; }
+
 

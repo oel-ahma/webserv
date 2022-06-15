@@ -19,6 +19,7 @@ class Request
         size_t                              _statusCode;
         std::string                         _rawString;
         std::vector<std::string>            _methodList;
+		std::string							_request;
 		//Not Sure If It has to be in this Class	
 
     public:
@@ -31,11 +32,10 @@ class Request
 
         void        initHeaders();
         void        initMethodList();
-        void        parsing(std::string const &str);
+        void        parsing();
         std::string gnl(std::string const &str, size_t &i);
         void        parseFirstLine(std::string const &str);
-		void		CreatetTmpFile();
-
+		
 		char								buff[BUFF+1];
 		int									sizeBuff;
 
@@ -48,13 +48,13 @@ class Request
 		std::string							getQuery() const;
 		std::string							getPath() const;
 		std::string							getVersion() const;
+		std::string							getRequest() const;
         //Setters
-		void								setStatusCode(size_t statusCode); 
+		void								setStatusCode(size_t statusCode);
+		void								setVersion(std::string const &str);
+		void								setRequest(char *buff, int size);
 		//Added Members 30/05
-		std::string							file_name;
-		int									file_fd;
 		int									ClientSocket;
-		std::fstream						file_stream;
 
 };
 

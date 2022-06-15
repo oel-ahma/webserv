@@ -17,11 +17,11 @@ class Response {
 		Response &operator=(Response const &other);
 
 		void	prepareResponse(Request *request, ConfigParse const *config);
-		void	CreateTmpFile();
 		void	createResponse();
 		// void	setResponseLocation();
 		void	initStatusCodeMsg();
 		
+		std::string getResponse();
 		//Setters
 
 		//Http Methods
@@ -29,15 +29,13 @@ class Response {
 		int		httpPostMethod();
 		int		httpDeleteMethod();
 		int		responseBodyErrorSet();
+		int		responseBodyDirectorySet();
 		int		setHeaders();
 
 
 		char	buff[BUFF + 1];
 		int		sizeBuff;
 		bool	responseIsSet;
-		std::string		file_name;
-		int 			file_fd;
-		std::fstream	file_stream;
 
 	private:
 		Request								*_request;

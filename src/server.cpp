@@ -101,49 +101,48 @@ void	Server::add_client() {
 	pfd.events = POLLIN | POLLOUT | POLLRDHUP | POLLERR;
 	fds.push_back(pfd);
 	this->client_buff[pfd.fd].ClientSocket = pfd.fd;
-	this->client_buff[pfd.fd].CreatetTmpFile();
 	std::cout << "Client " << pfd.fd << " connected.\n" << std::endl;
 }
 
 void Server::recv(int socket) {
-	std::cout << "recv for the client " << socket << "." << std::endl;
+	// std::cout << "recv for the client " << socket << "." << std::endl;
 	this->client_buff[socket].sizeBuff = ::recv(socket, this->client_buff[socket].buff, BUFF, 0);
 	if (this->client_buff[socket].sizeBuff == ERROR)
 		throw std::runtime_error("recv(): " + std::string(strerror(errno)));
+	//TODO: Verif si toute la requete a été stockée dans le BUFFER
+	if (this->client_buff[socket].sizeBuff == BUFF) {
+		//TODO: Requete trop longue
+		this->client_buff[socket].setStatusCode(413);
+	}
+
 	this->client_buff[socket].buff[this->client_buff[socket].sizeBuff] = '\0';
-	std::cout << "The message was:\n" << client_buff[socket].buff << std::endl; //DEGUB
+	this->client_buff[socket].setRequest(this->client_buff[socket].buff, this->client_buff[socket].sizeBuff);
+	// std::cout << GREEN << "The message was:\n" << this->client_buff[socket].getRequest() << RESET << std::endl; //DEGUB
 }
 
 bool Server::send(int socket) {
-	//preparer la reponse avant de l'envoyer
+	// preparer la reponse avant de l'envoyer
 	if (this->response_buff[socket].responseIsSet == false) {
 		// std::cout << "client " << socket << " has now a response file." << std::endl;
 		//HERE PARSING
+		// std::string request;
+		// request.append(client_buff[socket].buff, this->client_buff[socket].sizeBuff);
+		client_buff[socket].parsing();
 		response_buff[socket].prepareResponse(&client_buff[socket], this->config);
 		// std::cout << "file " << this->response_buff[socket].file_name << " is associated with client " << socket << ".\n" << std::endl;
 	}
 	else {
-		// std::cout << "We are sending this message:\n" << this->response_buff[socket].buff << "\n" << std::endl;
-		if (::send(socket, this->response_buff[socket].buff, this->response_buff[socket].sizeBuff, 0) == ERROR)
+		// std::cout << "We are sending this message:\n" << this->response_buff[socket].getResponse() << "\n" << std::endl;
+		// if (::send(socket, this->response_buff[socket].buff, this->response_buff[socket].sizeBuff, 0) == ERROR)
+		//		ssize_t		send(int sockfd, const void *buf, size_t len, int flags);
+		if (::send(socket, this->response_buff[socket].getResponse().c_str(), this->response_buff[socket].getResponse().size(), 0) == ERROR)
 			throw std::runtime_error("send(): " + std::string(strerror(errno)));
-		this->response_buff[socket].responseIsSet = false;
-		if (this->response_buff[socket].sizeBuff < BUFF)
-			return (true);
+		return (true);
 	}
 	return (false);
 }
 
-void	Server::treat_Request(int client) {
-	//TODO: write le buffer dans le fichier temporaire du client_buff
-	// std::cout << "----Traitement de requete pour le socket " << client << "----" << std::endl;
-	this->client_buff[client].file_stream.write(this->client_buff[client].buff, this->client_buff[client].sizeBuff);
-	this->client_buff[client].sizeBuff = 0;
-	//*---Request Parsing---*//
-	client_buff[client].parsing(this->client_buff[client].buff);
-	//Work In Progress...
-}
-
-void	Server::routine() {//listen poll
+void	Server::routine() {
 	if (poll(&fds[0], fds.size(), 0) != ERROR) {
 		if (this->ready == false)
 			this->listen_server();
@@ -152,9 +151,7 @@ void	Server::routine() {//listen poll
 			return ;
 		}
 		for (std::vector<struct pollfd>::iterator it = this->fds.begin() + 1; it != this->fds.end() && fds.size() > 1; it++) {
-			if (this->client_buff[it->fd].sizeBuff)
-				treat_Request(it->fd);
-			else if (it->revents & POLLIN) {
+			if (it->revents & POLLIN) {
 				// std::cout << "socket " << it->fd << " ----POLLIN---------" << std::endl;
 				this->recv(it->fd);
 			}
@@ -173,31 +170,12 @@ void	Server::routine() {//listen poll
 		}
 	}
 	else {
-		std::cout << "------------error poll------------" << std::endl;
+		// std::cout << "------------error poll------------" << std::endl;
 		throw std::runtime_error("poll(): " + std::string(strerror(errno)));
 	}
 }
 
 void Server::close(std::vector<struct pollfd>::iterator it) {
-	this->client_buff[it->fd].file_stream.clear();
-	this->response_buff[it->fd].file_stream.clear();
-	if (this->client_buff[it->fd].file_stream.is_open()) {
-	// std::cout << "---------------here1---------------" << std::endl;
-		this->client_buff[it->fd].file_stream.close();
-		if (this->client_buff[it->fd].file_stream.fail())
-			throw std::ios_base::failure("failed to close file: " + this->client_buff[it->fd].file_name);
-		if (remove(this->client_buff[it->fd].file_name.c_str()) == ERROR)
-			throw std::runtime_error("remove(): " + std::string(strerror(errno)));
-	}
-	if (this->response_buff[it->fd].file_stream.is_open()) {
-	// std::cout << "---------------here2---------------" << std::endl;
-		this->response_buff[it->fd].file_stream.close();
-		if (this->response_buff[it->fd].file_stream.fail())
-			throw std::ios_base::failure("failed to close file: " + this->response_buff[it->fd].file_name);
-		if (remove(this->response_buff[it->fd].file_name.c_str()) == ERROR)
-			throw std::runtime_error("remove(): " + std::string(strerror(errno)));
-	}
-	// std::cout << "---------------here3---------------" << std::endl;
 	this->client_buff.erase(it->fd);
 	this->response_buff.erase(it->fd);
 	this->fds.erase(it);

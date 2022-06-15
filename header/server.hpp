@@ -27,10 +27,10 @@ class Server
 
 
 	private:
-		int							socket_server;//TODO: const ?
+		int							socket_server;
 		std::vector<struct pollfd>	fds;
 		std::map<int, Request>		client_buff;
-		std::map<int, Response>		response_buff;	//TODO: Class response ? mettre le buffer CHAR dans la class response
+		std::map<int, Response>		response_buff;
 		bool						ready;
 		const ConfigParse			*config;
 

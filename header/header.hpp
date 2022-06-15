@@ -4,6 +4,7 @@
 #define ERROR	-1
 #define BACKLOG	65535
 #define BUFF	65535
+#define TIMEOUT 100
 
 #define RED		"\033[0;31m"
 #define YELLOW	"\033[0;33m"
@@ -55,10 +56,11 @@ typedef struct	s_listen
 
 
 
-bool isNumber(const std::string& s);
-bool isFile(std::string const &path);
-bool isDirectory(std::string const &path);
-void removeDoubleSlash(std::string &str);
+bool 		isNumber(const std::string& s);
+bool 		isFile(std::string const &path);
+bool 		isDirectory(std::string const &path);
+void 		removeDoubleSlash(std::string &str);
+void		replacePercent20BySpaces(std::string &str);
 
 template<typename T>
 void print_vector(std::vector<T> const &vec)
