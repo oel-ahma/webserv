@@ -16,6 +16,7 @@ class Response {
 
 		Response &operator=(Response const &other);
 
+		void	fillBuffer();
 		void	prepareResponse(Request *request, ConfigParse const *config);
 		void	CreateTmpFile();
 		void	createResponse();

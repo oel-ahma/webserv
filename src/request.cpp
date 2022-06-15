@@ -15,13 +15,14 @@ void	Request::CreatetTmpFile() {
 Request::Request(std::string const &str) : 
     _body(""), _statusCode(200), _rawString(str)
 {
-    parsing(str);
+    parsing(*this);
     if (this->_statusCode != 200)
         std::cerr << "Parsing Error : " << this->_statusCode << std::endl;
 }
 
-void Request::parsing(std::string const &str)
+void Request::parsing(Request & client)
 {
+	char			*str;
     std::string		line;
 	std::string     key;
     std::string     value;
@@ -31,15 +32,30 @@ void Request::parsing(std::string const &str)
 	initHeaders();
     initMethodList();
 	this->_statusCode = 200;
-    parseFirstLine(gnl(str, i));
+	//TODO: SOLUTIONS:
+	//			_Récupérer ligne par ligne le HEADER sans extraire les caractères
+	//			_Récupérer ligne par ligne le HEADER en extractant les caractères
+	//			_Stocker le header entier dans un STD::STRING ou CHAR*, extraire ou pas.
+
+	// this->file_stream.getline(str, BUFF+100);//TODO: ne pas extract ?
+	parseFirstLine(gnl(str, i));
     while(((line = gnl(str, i)) != "") && _statusCode != 400)
     {
+		// this->file_stream.getline(str, BUFF+100);//TODO: ne pas extract ?
         j = line.find_first_of(':');
         key = line.substr(0, j);
         value = line.substr(j + 2, std::string::npos);
         //if (_headers.count(key))
 		_headers[key] = value;
     }
+	//TODO:	stocker le body de la requete ?
+	//TODO:	si la requete est une image, std::string pose un probleme car on retrouve des
+	//		"\0" dans les images, qui seront interprétés comme une fin de string.
+	//		Que faire si la requete fait 10Go ? impossible de stocker ça dans la RAM.
+
+	//TODO: SOLUTIONS:
+	//			_Laisser le body dans le fichier
+	//			_ ???
 	_body = str.substr(i, std::string::npos);
 }
 
