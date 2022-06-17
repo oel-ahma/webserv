@@ -1,8 +1,8 @@
 /***************************************************************************************
 	D�finition des fonctions de la classe CCgi
 ***************************************************************************************/
+/*
 #include ".\cgi.h"
-
 //Constructeur
 CCgi::CCgi(void)
 {
@@ -247,3 +247,4 @@ void CCgi::ConvertValue(char* tcVal)
 
 	tcVal[nNb] = '\0';
 }
+*/

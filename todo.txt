@@ -11,6 +11,7 @@ _Créer le processus enfant qui exec le CGI
 	_Rediriger la sortie vers std::string/fd/char*
 _::send
 
+
 _script pour passer les variables d'environnement ?
 	-CONTENT_TYPE:
 		Le type de données du contenu, utilisé lorsque le client envoie le contenu joint au serveur.

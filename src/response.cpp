@@ -71,6 +71,26 @@ std::string Response::getResponse() { return this->_response; }
 /*                              MEMBER FUNCTION                               */
 /* ************************************************************************** */
 
+//TODO: mettre la fct dans classe CGI ?
+void	execCGI() {
+	//TODO:	Mettre le _body de la requete en INPUT pour le CGI, donc modifier le fd d'entrée standard
+	if (dup2(/*int oldfd*/, STDIN_FILENO) == -1)
+		// error
+
+	//TODO: Rediriger l'OUTPUT vers une string/fichier pour recuperer la reponse du CGI
+	if (dup2(/*int oldfd*/, STDOUT_FILENO) == -1)
+		// error
+
+	//TODO: Set les var d'env ?
+
+	//TODO: se deplacer dans /usr/bin/ pour exec le php-cgi
+	if (chdir("/usr/bin/") == -1)//path correct ?
+		//error
+
+	//TODO: exec le binaire
+	if (execve(const char *fichier, char *const argv[], char *const envp[]) == -1)
+		//error
+}
 
 void	Response::prepareResponse(Request *request, ConfigParse const *config) {
 	this->_request = request;
@@ -93,6 +113,7 @@ void	Response::prepareResponse(Request *request, ConfigParse const *config) {
 void Response::createResponse() {
 	std::map<std::string, ConfigParse> tmpConf(this->_config->getLocation());
 	std::string tmpPath = this->_request->getPath();
+	std::cout << std::endl << GREEN << tmpPath << RESET << std::endl; //TODO:
 	std::map<std::string, ConfigParse>::const_iterator it;
 
 	// TMP = "/1.html"
@@ -130,9 +151,23 @@ void Response::createResponse() {
 				this->_request->setStatusCode(405);
 		}
 	}
+	/*TODO: Où placer des fcts
+	//TODO: reutilisation de tmpPath car plus utile. tmpPath sera égale à l'extension du fichier de la requete GET
+	((tmpPath = this->_request->getPath()).erase(0, tmpPath.find_first_of(".") + 1)).resize(tmpPath.find_first_of(" "));
+	if (tmpPath == "php")
+		std::cout << std::endl << GREEN << "PHP file detected" << RESET << std::endl;
+	pid_t pid = fork();
+	if (pid == -1)
+		// error
+	else if (pid == 0)
+		execCGI();
+	else {
+		if (wait(NULL) == -1)
+			// error
+	}*/
 	if (this->_request->getStatusCode() == 200)
 	{
-		if (this->_request->getMethod() == "GET")
+		if (this->_request->getMethod() == "GET")//TODO: CGI ?
 			this->httpGetMethod();
 		if (this->_request->getMethod() == "POST")
 			this->httpPostMethod();
@@ -143,6 +178,7 @@ void Response::createResponse() {
 		this->responseBodyErrorSet();
 	this->_statusLine = this->_request->getVersion() + " " + std::to_string(this->_request->getStatusCode()) + " " + this->_statusMsg[this->_request->getStatusCode()] + "\r\n";
 	this->setHeaders();
+	//TODO: remplacer le body par le retour du CGI OU remplir le _body en conséquence
 	this->_response = this->_statusLine + this->_headers + this->_body;
 }
 
