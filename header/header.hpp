@@ -73,7 +73,7 @@ void print_vector(std::vector<T> const &vec)
 template<typename K, typename V> 
 void print_map(std::map<K, V> const &m)
 {
-    for (auto it = m.begin(); it != m.end(); ++it) { //Carefull auto is C++11
+    for (auto it = m.begin(); it != m.end(); ++it) { //TODO: Carefull auto is C++11
         std::cout << YELLOW << "[" << (*it).first << "]: \n" << RESET << (*it).second << std::endl;
     }
 }
