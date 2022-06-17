@@ -19,8 +19,9 @@ class Response {
 		void	prepareResponse(Request *request, ConfigParse const *config);
 		void	createResponse();
 		// void	setResponseLocation();
+		void	initContentTypeMIME();
 		void	initStatusCodeMsg();
-		
+		void	clearAll();
 		std::string getResponse();
 		//Setters
 
@@ -29,8 +30,9 @@ class Response {
 		int		httpPostMethod();
 		int		httpDeleteMethod();
 		int		responseBodyErrorSet();
-		int		responseBodyDirectorySet();
+		int		responseBodyDirectorySet(size_t flag);
 		int		setHeaders();
+
 
 
 		char	buff[BUFF + 1];
@@ -47,6 +49,7 @@ class Response {
 		std::string							_body;
 		std::string							_response;
 		ConfigParse	const					*_responseLocation;
+		std::map<std::string, std::string>  _contentTypeMIME;
 
 };
 

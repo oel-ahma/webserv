@@ -39,7 +39,7 @@ class Server
 		void	listen_server();
 		void	add_client();
 		void	treat_Request(int client);
-		void	recv(int socket);
+		bool	recv(int socket);
 		bool	send(int socket);
 		void	close(std::vector<struct pollfd>::iterator it);
 };

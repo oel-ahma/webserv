@@ -14,7 +14,7 @@ void Request::parsing()
 	initHeaders();
     initMethodList();
 	this->_statusCode = 200;
-    parseFirstLine(gnl(_request, i));
+	parseFirstLine(gnl(_request, i));
     while(((line = gnl(_request, i)) != "") && _statusCode != 400)
     {
         j = line.find_first_of(':');
@@ -38,9 +38,7 @@ std::string Request::gnl(std::string const &str, size_t &i)
 	j = ret.find_first_of('\n');
     ret = ret.substr(0, j);
     if (ret[ret.size() - 1] == '\r')
-	{
-        ret.resize(ret.size() - 1);
-	}
+		ret.resize(ret.size() - 1);
 	i = ((j == std::string::npos) ? j : j + i + 1);
     return ret;
 }
@@ -155,6 +153,22 @@ Request &Request::operator=(Request const &rhs) {
 	this->ClientSocket = rhs.ClientSocket;
 	strcpy(this->buff, rhs.buff);
     return (*this);
+}
+
+void			Request::clearAll()
+{
+	_method.clear();
+	_path.clear();
+	_query.clear();
+	_version.clear();
+	_methodList.clear();
+	_headers.clear();
+	_body.clear();
+	_statusCode = 200;
+	_rawString.clear();
+	_request.clear();
+	sizeBuff = 0;
+	ClientSocket = 0;
 }
 
 void								Request::setStatusCode(size_t statusCode) { this->_statusCode = statusCode; }

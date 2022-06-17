@@ -33,6 +33,7 @@ class Request
         void        initHeaders();
         void        initMethodList();
         void        parsing();
+		void		clearAll();
         std::string gnl(std::string const &str, size_t &i);
         void        parseFirstLine(std::string const &str);
 		

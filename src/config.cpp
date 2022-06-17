@@ -40,6 +40,7 @@ std::vector<std::string> Config::readConfigFile(std::string const &fileName)
                 ret.push_back(buff.substr(i, std::string::npos - 1));
         }
     }
+	file.close();
     return ret;
 }
 
