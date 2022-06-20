@@ -39,6 +39,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <sys/wait.h>
 
 typedef struct	s_listen
 {

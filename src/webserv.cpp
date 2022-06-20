@@ -1,8 +1,10 @@
+// #include <string>
+// #include <iostream>
+
 // int main()
 // {
-// 	int i = 0;
-// 	if (i == 0)
-// 		std::cout << "YA MAN\n";
-// 	else
-// 		std::cout << "YES"
+// 	std::string tmp("testtest");
+	
+// 	std::string sstr = tmp.substr(tmp.find("y"), std::string::npos);
+// 	std::cout << sstr << std::endl;
 // }

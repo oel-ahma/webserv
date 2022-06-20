@@ -5,7 +5,7 @@
 /*                                CONSTRUCTORS                                */
 /* ************************************************************************** */
 
-Response::Response() : sizeBuff(0), responseIsSet(false), _responseLocation(NULL) {
+Response::Response() : sizeBuff(0), responseIsSet(false), _contentTypeCgi(""), _responseLocation(NULL) {
 	memset(buff, 0, BUFF);
 	this->initStatusCodeMsg();
 	this->initContentTypeMIME();
@@ -40,6 +40,8 @@ Response &Response::operator=(Response const &other) {
 	this->_body = other._body;
 	this->_response = other._response;
 	this->_responseLocation = other._responseLocation;
+	this->_addr = other._addr;
+	this->_contentTypeCgi = other._contentTypeCgi;
 	return *this;
 }
 
@@ -64,33 +66,8 @@ void Response::clearAll() {
 std::string Response::getResponse() { return this->_response; }
 
 /* ************************************************************************** */
-/*                                  SETTERS	                                  */
-/* ************************************************************************** */
-
-/* ************************************************************************** */
 /*                              MEMBER FUNCTION                               */
 /* ************************************************************************** */
-
-//TODO: mettre la fct dans classe CGI ?
-void	execCGI() {
-	//TODO:	Mettre le _body de la requete en INPUT pour le CGI, donc modifier le fd d'entrée standard
-	if (dup2(/*int oldfd*/, STDIN_FILENO) == -1)
-		// error
-
-	//TODO: Rediriger l'OUTPUT vers une string/fichier pour recuperer la reponse du CGI
-	if (dup2(/*int oldfd*/, STDOUT_FILENO) == -1)
-		// error
-
-	//TODO: Set les var d'env ?
-
-	//TODO: se deplacer dans /usr/bin/ pour exec le php-cgi
-	if (chdir("/usr/bin/") == -1)//path correct ?
-		//error
-
-	//TODO: exec le binaire
-	if (execve(const char *fichier, char *const argv[], char *const envp[]) == -1)
-		//error
-}
 
 void	Response::prepareResponse(Request *request, ConfigParse const *config) {
 	this->_request = request;
@@ -98,12 +75,6 @@ void	Response::prepareResponse(Request *request, ConfigParse const *config) {
 
 	if (this->_request->getBody().size() > this->_config->getClientMaxBodySize())
 		this->_request->setStatusCode(413);
-	// if (this->_request->getRequest() == "")
-	// {
-	// 	std::cout << YELLOW << "HERE" << std::endl;
-	// 	this->_request->setStatusCode(400);
-
-	// }
 	//Generate A Response From Request.
 	this->createResponse();
 	// std::cout << "My response buffer contains:\n" << this->buff << std::endl;
@@ -113,7 +84,6 @@ void	Response::prepareResponse(Request *request, ConfigParse const *config) {
 void Response::createResponse() {
 	std::map<std::string, ConfigParse> tmpConf(this->_config->getLocation());
 	std::string tmpPath = this->_request->getPath();
-	std::cout << std::endl << GREEN << tmpPath << RESET << std::endl; //TODO:
 	std::map<std::string, ConfigParse>::const_iterator it;
 
 	// TMP = "/1.html"
@@ -151,20 +121,6 @@ void Response::createResponse() {
 				this->_request->setStatusCode(405);
 		}
 	}
-	/*TODO: Où placer des fcts
-	//TODO: reutilisation de tmpPath car plus utile. tmpPath sera égale à l'extension du fichier de la requete GET
-	((tmpPath = this->_request->getPath()).erase(0, tmpPath.find_first_of(".") + 1)).resize(tmpPath.find_first_of(" "));
-	if (tmpPath == "php")
-		std::cout << std::endl << GREEN << "PHP file detected" << RESET << std::endl;
-	pid_t pid = fork();
-	if (pid == -1)
-		// error
-	else if (pid == 0)
-		execCGI();
-	else {
-		if (wait(NULL) == -1)
-			// error
-	}*/
 	if (this->_request->getStatusCode() == 200)
 	{
 		if (this->_request->getMethod() == "GET")//TODO: CGI ?
@@ -182,8 +138,6 @@ void Response::createResponse() {
 	this->_response = this->_statusLine + this->_headers + this->_body;
 }
 
-// void	Response::setResponseLocation() {
-// }
 
 int	Response::httpGetMethod() {
 	std::fstream file;
@@ -196,6 +150,11 @@ int	Response::httpGetMethod() {
 	}
 	if (isFile(this->_path))
 	{
+		if (this->_path.rfind(".") != std::string::npos && this->_path.substr(this->_path.rfind(".") + 1, std::string::npos) == this->_responseLocation->getCgiExtension())
+		{
+			execCGI();
+			return 0;
+		}
 		file.open(this->_path, std::fstream::in | std::fstream::out);
 		if (!file.fail())
 		{
@@ -279,10 +238,11 @@ int		Response::setHeaders() {
 			std::string extension = this->_path.substr(j + 1 , std::string::npos);
 			this->_headers += "Content-Type: " + _contentTypeMIME[extension] + "\r\n";
 		}
+		if (!this->_contentTypeCgi.empty())
+			this->_headers += "Content-Type: " + this->_contentTypeCgi + "\r\n";
 	}
 	this->_headers += "Content-Length: " + std::to_string(this->_body.length());
 	this->_headers += "\r\n\r\n";
-
 	return 0;
 }
 
@@ -362,6 +322,116 @@ int		Response::responseBodyDirectorySet(size_t flag) {
 		this->_body += "</table></html>\r\n";
 		removeDoubleSlash(this->_body);
 		return 0;
+}
+
+
+void Response::execCGI()
+{
+    int input = dup(STDIN_FILENO);
+    int output = dup(STDOUT_FILENO);
+
+    FILE *fsInput = tmpfile();
+    FILE *fsOutput = tmpfile();
+
+    int fdInput = fileno(fsInput);
+    int fdOutput = fileno(fsOutput);
+
+    // std::cout << GREEN << "Body is: " << this->_request->getBody() << RESET << std::endl;
+	write(fdInput, this->_request->getBody().c_str(), this->_request->getBody().size());
+    lseek(fdInput, 0, SEEK_SET);
+
+	pid_t pid = fork();
+	if (pid == -1)
+		this->_request->setStatusCode(502);	
+	if (pid == 0)
+	{
+		extern char **environ;
+		setEnvCGI();
+
+		std::string tmpcgi = this->_responseLocation->getCgiPath();
+		char const	*cgiInfo[3];
+		cgiInfo[0] = tmpcgi.c_str();
+		cgiInfo[1] = this->_path.c_str();
+		cgiInfo[2] = NULL;
+		
+		dup2(fdInput, STDIN_FILENO);
+		dup2(fdOutput, STDOUT_FILENO);
+		if (execve(cgiInfo[0], (char *const *)cgiInfo, environ) == -1)
+			exit(1);
+	}
+	int status;
+	if (waitpid(pid, &status, 0) == -1)
+		this->_request->setStatusCode(500);
+	if (WIFEXITED(status) && WEXITSTATUS(status))
+		this->_request->setStatusCode(502);
+	lseek(fdOutput, 0, SEEK_SET);
+	char buffer[BUFF];
+	int rd;
+	std::string tmp;
+	while ((rd = read(fdOutput, buffer, BUFF - 1)) != 0) 
+	{
+		if (rd == -1) 
+		{
+			this->_request->setStatusCode(500);
+			break;
+		}
+		tmp.append(buffer, rd);
+	}
+	dup2(STDIN_FILENO, input);
+	dup2(STDOUT_FILENO, output);
+	close(input);
+	close(output);
+	close(fdInput);
+	close(fdOutput);
+	fclose(fsInput);
+	fclose(fsOutput);
+	if (this->_request->getStatusCode() == 200)
+	{
+		size_t i = tmp.find("\r\n");
+		if (i != std::string::npos)
+		{
+			std::string cgiStrHeaders = tmp.substr(0, i);
+			cgiStrHeaders = cgiStrHeaders.substr(cgiStrHeaders.find_first_of(":") + 1, std::string::npos);
+			this->_contentTypeCgi = cgiStrHeaders.substr(cgiStrHeaders.find_first_not_of(" "), std::string::npos);
+
+			this->_body = tmp.substr(tmp.find("\r\n"), std::string::npos);
+		}
+		else
+			this->_body = tmp;
+	} 
+}
+
+void Response::setEnvCGI() {
+	setenv("CONTENT_LENGTH", std::to_string(this->_request->getBody().size()).c_str(), 1);
+	setenv("CONTENT_TYPE", "text/html", 1);
+	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
+	setenv("PATH_INFO", this->_request->getPath().c_str(), 1);
+	setenv("REQUEST_URI", this->_request->getPath().c_str(), 1);
+	setenv("QUERY_STRING", this->_request->getQuery().c_str(), 1);
+	setenv("REQUEST_METHOD", this->_request->getMethod().c_str(), 1);
+	char buffer[16];
+	inet_ntop(AF_INET, &_addr.sin_addr, buffer, sizeof(buffer));
+	setenv("REMOTE_ADDR", buffer, 1);
+	setenv("SCRIPT_NAME", this->_responseLocation->getCgiPath().c_str(), 1);
+	setenv("SERVER_NAME", "webServ", 1);
+	setenv("SERVER_PORT", std::to_string(this->_config->getListen().port).c_str(), 1);
+	setenv("SERVER_PROTOCOL", this->_request->getVersion().c_str(), 1);
+	setenv("SERVER_SOFTWARE", "WebServ/42.42", 1);
+	setenv("AUTH_TYPE", "", 1);
+	setenv("PATH_TRANSLATED", this->_path.c_str(), 1);
+	setenv("REMOTE_IDENT", "", 1);
+	setenv("REMOTE_USER", "", 1);
+	setenv("REDIRECT_STATUS", "200", 1);
+
+	std::map<std::string, std::string> tmpHead = this->_request->getHeaders();
+	for (std::map<std::string, std::string>::iterator it = tmpHead.begin(), \
+		ite = tmpHead.end(); it != ite; it++)
+	{
+		std::string tmp = it->first;
+		for (size_t i = 0; i < tmp.size(); i++)
+			tmp[i] = toupper(tmp[i]);
+		setenv(("HTTP_" + tmp).c_str(), it->second.c_str(), 1);
+	}
 }
 
 void	Response::initStatusCodeMsg() {

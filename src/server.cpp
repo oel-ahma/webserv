@@ -139,11 +139,11 @@ bool Server::send(int socket) {
 	if (this->response_buff[socket].responseIsSet == false) {
 		//HERE PARSING
 		client_buff[socket].parsing();
-		std::cout << RED <<"here:"  << socket << client_buff[socket].getRequest()<< RESET << std::endl;
+		// std::cout << RED <<"here:"  << socket << client_buff[socket].getRequest()<< RESET << std::endl;
 		response_buff[socket].prepareResponse(&client_buff[socket], this->config);
 	}
 	if (this->response_buff[socket].responseIsSet == true) { //TODO: else or if !!!!!
-		std::cout << "We are sending this message:\n" << this->response_buff[socket].getResponse() << "\n" << std::endl;
+		// std::cout << "We are sending this message:\n" << this->response_buff[socket].getResponse() << "\n" << std::endl;
 		if (::send(socket, this->response_buff[socket].getResponse().c_str(), this->response_buff[socket].getResponse().size(), 0) == ERROR)
 			return false;
 			// throw std::runtime_error("send(): " + std::string(strerror(errno)));
@@ -175,7 +175,7 @@ void	Server::routine() {
 				}
 			}
 			else if (it->revents & POLLRDHUP || it->revents & POLLERR) {
-				std::cout << "socket " << it->fd << " ----close dans POLLRDHUP ou POLLERR---------" << std::endl;
+				// std::cout << "socket " << it->fd << " ----close dans POLLRDHUP ou POLLERR---------" << std::endl;
 				close(it);
 			}
 		}

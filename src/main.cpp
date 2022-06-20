@@ -19,6 +19,7 @@ int main(int ac, char **av)
 		config.parse(configFile);
 	} catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
+		return 1;
 	}
 	// std::cout << config;
 	//TODO: config à passer à la classe Server

@@ -29,6 +29,8 @@ class Response {
 		int		httpGetMethod();
 		int		httpPostMethod();
 		int		httpDeleteMethod();
+		void	execCGI();
+		void	setEnvCGI();
 		int		responseBodyErrorSet();
 		int		responseBodyDirectorySet(size_t flag);
 		int		setHeaders();
@@ -48,8 +50,10 @@ class Response {
 		std::string							_headers;
 		std::string							_body;
 		std::string							_response;
+		std::string							_contentTypeCgi;
 		ConfigParse	const					*_responseLocation;
 		std::map<std::string, std::string>  _contentTypeMIME;
+		sockaddr_in							_addr;
 
 };
 
