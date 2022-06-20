@@ -361,7 +361,7 @@ void Response::execCGI()
 	}
 	int status;
 	if (waitpid(pid, &status, 0) == -1)
-		this->_request->setStatusCode(500);
+		this->_request->setStatusCode(502);
 	if (WIFEXITED(status) && WEXITSTATUS(status))
 		this->_request->setStatusCode(502);
 	lseek(fdOutput, 0, SEEK_SET);
@@ -372,7 +372,7 @@ void Response::execCGI()
 	{
 		if (rd == -1) 
 		{
-			this->_request->setStatusCode(500);
+			this->_request->setStatusCode(502);
 			break;
 		}
 		tmp.append(buffer, rd);
