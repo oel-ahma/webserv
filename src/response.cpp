@@ -132,7 +132,9 @@ void Response::createResponse() {
 	}
 	if (this->_request->getStatusCode() != 200)
 		this->responseBodyErrorSet();
-	this->_statusLine = this->_request->getVersion() + " " + std::to_string(this->_request->getStatusCode()) + " " + this->_statusMsg[this->_request->getStatusCode()] + "\r\n";
+	std::ostringstream tmpStatusCode;
+	tmpStatusCode << this->_request->getStatusCode();
+	this->_statusLine = this->_request->getVersion() + " " + tmpStatusCode.str() + " " + this->_statusMsg[this->_request->getStatusCode()] + "\r\n";
 	this->setHeaders();
 	//TODO: remplacer le body par le retour du CGI OU remplir le _body en conséquence
 	this->_response = this->_statusLine + this->_headers + this->_body;
@@ -155,7 +157,7 @@ int	Response::httpGetMethod() {
 			execCGI();
 			return 0;
 		}
-		file.open(this->_path, std::fstream::in | std::fstream::out);
+		file.open(this->_path.c_str(), std::fstream::in | std::fstream::out);
 		if (!file.fail())
 		{
 			std::string buff((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -189,7 +191,7 @@ int Response::httpPostMethod() {
 		filePath = "./" + this->_config->getRoot() + "/" + this->_responseLocation->getUploadPath() + "//" + fileName;
 		fileData = fileData.substr(fileData.find("\r\n\r\n") + 4);
 		fileData = fileData.substr(0, fileData.find(boundary));
-		std::fstream file(filePath, std::fstream::in | std::fstream::out | std::fstream::trunc);
+		std::fstream file(filePath.c_str(), std::fstream::in | std::fstream::out | std::fstream::trunc);
 		if (!file.is_open())
 		{
 			this->_request->setStatusCode(403);
@@ -241,7 +243,9 @@ int		Response::setHeaders() {
 		if (!this->_contentTypeCgi.empty())
 			this->_headers += "Content-Type: " + this->_contentTypeCgi + "\r\n";
 	}
-	this->_headers += "Content-Length: " + std::to_string(this->_body.length());
+	std::ostringstream tmpBodyLength;
+	tmpBodyLength << this->_body.length();
+	this->_headers += "Content-Length: " + tmpBodyLength.str();
 	this->_headers += "\r\n\r\n";
 	return 0;
 }
@@ -252,7 +256,7 @@ int 	Response::responseBodyErrorSet() {
 
 
 	error_path = "." + this->_config->getRoot() + "/" + this->_config->getErrorPages()[this->_request->getStatusCode()];
-	errfile.open(error_path, std::fstream::in | std::fstream::out);
+	errfile.open(error_path.c_str(), std::fstream::in | std::fstream::out);
 	if (!errfile.fail())
 	{
 		std::string errbuff((std::istreambuf_iterator<char>(errfile)), std::istreambuf_iterator<char>());
@@ -283,7 +287,7 @@ int		Response::responseBodyDirectorySet(size_t flag) {
 		this->_body += "<tr> <th>Name</th><th>Last modified</th><th>Size</th><th>Action</th> </tr>";
 		if ((dp = opendir(this->_path.c_str())) != NULL)
 		{
-			while ((di_struct = readdir(dp)) != nullptr)
+			while ((di_struct = readdir(dp)) != NULL)
 			{
 				if (std::string(di_struct->d_name) != ".")
 				{
@@ -305,7 +309,9 @@ int		Response::responseBodyDirectorySet(size_t flag) {
 						this->_body += "directory";
 					else
 					{
-						std::string size = std::to_string(static_cast<float>(file_stats.st_size) / 1000);
+						std::ostringstream tmpSize;
+						tmpSize << static_cast<float>(file_stats.st_size) / 1000;
+						std::string size = tmpSize.str();
 						size = size.substr(0, size.size() - 3);
 						this->_body +=  size + "Kb";
 					}
@@ -402,7 +408,9 @@ void Response::execCGI()
 }
 
 void Response::setEnvCGI() {
-	setenv("CONTENT_LENGTH", std::to_string(this->_request->getBody().size()).c_str(), 1);
+	std::ostringstream tmpBodySize;
+	tmpBodySize << this->_request->getBody().size();
+	setenv("CONTENT_LENGTH", tmpBodySize.str().c_str(), 1);
 	setenv("CONTENT_TYPE", "text/html", 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
 	setenv("PATH_INFO", this->_request->getPath().c_str(), 1);
@@ -414,7 +422,9 @@ void Response::setEnvCGI() {
 	setenv("REMOTE_ADDR", buffer, 1);
 	setenv("SCRIPT_NAME", this->_responseLocation->getCgiPath().c_str(), 1);
 	setenv("SERVER_NAME", "webServ", 1);
-	setenv("SERVER_PORT", std::to_string(this->_config->getListen().port).c_str(), 1);
+	std::ostringstream tmpPort;
+	tmpPort << this->_config->getListen().port;
+	setenv("SERVER_PORT", tmpPort.str().c_str(), 1);
 	setenv("SERVER_PROTOCOL", this->_request->getVersion().c_str(), 1);
 	setenv("SERVER_SOFTWARE", "WebServ/42.42", 1);
 	setenv("AUTH_TYPE", "", 1);

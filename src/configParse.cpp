@@ -67,8 +67,6 @@ int ConfigParse::parseConfigFile(size_t &i, std::vector<std::string> const confi
 
 void    ConfigParse::addListen(std::vector<std::string> args)
 {
-	// t_listen listen;
-	// parsing handle for not the right way to right it
 	if (args.size() != 1)
 		throw ConfigParse::InvalidArgsException();
 	size_t i = args[0].find_first_of(':');
@@ -77,7 +75,8 @@ void    ConfigParse::addListen(std::vector<std::string> args)
 		_listen.host = args[0].substr(0, i);
 	else
 		_listen.host = "127.0.0.1";
-	// _listen.push_back(listen);
+	if (hostSyntaxCheck(_listen.host))
+		throw ConfigParse::InvalidArgsException();
 }
 
 void    ConfigParse::addRoot(std::vector<std::string> args)

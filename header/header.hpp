@@ -52,7 +52,6 @@ typedef struct	s_listen
 #include "response.hpp"
 #include "configParse.hpp"
 #include "config.hpp"
-#include "webserv.hpp"
 #include "server.hpp"
 
 
@@ -63,20 +62,21 @@ bool 		isFile(std::string const &path);
 bool 		isDirectory(std::string const &path);
 void 		removeDoubleSlash(std::string &str);
 void		replacePercent20BySpaces(std::string &str);
+int 		hostSyntaxCheck(std::string &str);
 
-template<typename T>
-void print_vector(std::vector<T> const &vec)
-{
-	for (auto i = vec.begin(); i != vec.end(); ++i)
-		std::cout << *i << "\n";
-}
+// template<typename T>
+// void print_vector(std::vector<T> const &vec)
+// {
+// 	for (auto i = vec.begin(); i != vec.end(); ++i)
+// 		std::cout << *i << "\n";
+// }
 
-template<typename K, typename V> 
-void print_map(std::map<K, V> const &m)
-{
-    for (auto it = m.begin(); it != m.end(); ++it) { //TODO: Carefull auto is C++11
-        std::cout << YELLOW << "[" << (*it).first << "]: \n" << RESET << (*it).second << std::endl;
-    }
-}
+// template<typename K, typename V> 
+// void print_map(std::map<K, V> const &m)
+// {
+//     for (auto it = m.begin(); it != m.end(); ++it) { //TODO: Carefull auto is C++11
+//         std::cout << YELLOW << "[" << (*it).first << "]: \n" << RESET << (*it).second << std::endl;
+//     }
+// }
 
 #endif

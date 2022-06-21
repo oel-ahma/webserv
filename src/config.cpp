@@ -22,7 +22,7 @@ std::vector<std::string> Config::readConfigFile(std::string const &fileName)
     std::vector<std::string> ret;
     size_t i(0);
     size_t j;
-    std::ifstream file(fileName);
+    std::ifstream file(fileName.c_str());
 
     if (!file.fail())
     {

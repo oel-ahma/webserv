@@ -9,7 +9,7 @@ OBJ			:=	$(SRC:%.cpp=$O%.o)
 CXX			:=	c++
 
 CXXFLAGS	+=	-I$I
-CXXFLAGS	+=	-Wall -Wextra -Werror #-std=c++98 TODO:
+CXXFLAGS	+=	-Wall -Wextra -Werror -std=c++98
 
 LDFLAGS		+=	-I$I
 
