@@ -173,7 +173,9 @@ void			Request::clearAll()
 
 void								Request::setStatusCode(size_t statusCode) { this->_statusCode = statusCode; }
 void								Request::setVersion(std::string const &str) { this->_version = str; }
-void								Request::setRequest(char *buff, int size) { this->_request.append(buff, size); }
+void								Request::setRequest(char *buff, int size) { 
+	/*this->_statusCode = 200;*/
+this->_request.append(buff, size); }
 
 //Getters
 std::map<std::string, std::string>  Request::getHeaders() const { return this->_headers; }

@@ -325,6 +325,7 @@ int		Response::responseBodyDirectorySet(size_t flag) {
 				this->_body += "</tr>";
 			} 
 		}
+		closedir(dp);
 		this->_body += "</table></html>\r\n";
 		removeDoubleSlash(this->_body);
 		return 0;
