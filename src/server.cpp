@@ -162,6 +162,7 @@ void	Server::routine() {
 				std::cout << "revent before recv: " << it->revents << std::endl;
 				if (this->recv(it->fd) == false)
 					close(it);
+				it->events = POLLOUT;
 			std::cout << "revent after recv: " << it->revents << " " << POLLIN << std::endl;
 
 			}
@@ -170,6 +171,7 @@ void	Server::routine() {
 				if (this->send(it->fd) == true) {
 					std::cout << "socket " << it->fd << " ----close dans POLLOUT---------" << std::endl;
 					close(it);
+					it->events = POLLIN;
 					continue;
 				}
 			}
