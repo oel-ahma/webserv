@@ -124,17 +124,17 @@ bool Server::recv(int socket) {
 	}
 	else if (rd == 0 && this->client_buff[socket].getRequest().empty())
 		return false;
-	// std::cout << GREEN << "The message was:" << socket  << "\n" << this->client_buff[socket].getRequest() << this->client_buff[socket].getStatusCode() << std::endl << "response is: \n" <<  this->response_buff[socket].getResponse() << RESET << std::endl; //DEGUB
+	std::cout << GREEN << "The message was:" << socket  << "\n" << this->client_buff[socket].getRequest() << this->client_buff[socket].getStatusCode() << std::endl << "response is: \n" <<  this->response_buff[socket].getResponse() << RESET << std::endl; //DEGUB
 	return true;
 }
 
 bool Server::send(int socket) {
-	if (this->response_buff[socket].responseIsSet == false) {
+	if (this->response_buff[socket].responseIsSet == false && !this->client_buff[socket].getRequest().empty()) {
 		client_buff[socket].parsing();
 		response_buff[socket].prepareResponse(&client_buff[socket], this->config);
 	}
 	else if (this->response_buff[socket].responseIsSet == true && !this->client_buff[socket].getRequest().empty()) { //TODO: else or if !!!!!
-		std::cout << "We are sending this message:" << "\n" << this->response_buff[socket].getResponse() << "\n" << this->response_buff[socket].getResponse().size() << std::endl;
+		// std::cout << "We are sending this message:" << "\n" << this->response_buff[socket].getResponse() << "\n" << this->response_buff[socket].getResponse().size() << std::endl;
 		if (::send(socket, this->response_buff[socket].getResponse().c_str(), this->response_buff[socket].getResponse().size(), 0) == ERROR)
 			return false;
 		return (true);
@@ -164,9 +164,9 @@ void	Server::routine() {
 				std::cout << "socket " << it->fd << " ----POLLOUT---------" << std::endl;
 				if (this->send(it->fd) == true) {
 					close(it);
-					it->events = POLLIN;
 					continue;
 				}
+				// it->events = POLLIN;
 			}
 			else if (it->revents & POLLRDHUP || it->revents & POLLERR) {
 				std::cout << "socket " << it->fd << " ----close dans POLLRDHUP ou POLLERR---------" << std::endl;

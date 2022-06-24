@@ -2,8 +2,8 @@
 # define HEADER_HPP
 
 #define ERROR	-1
-#define BACKLOG	65535
-#define BUFF	65535
+#define BACKLOG	655350
+#define BUFF	655350
 #define TIMEOUT 100
 
 #define RED		"\033[0;31m"
