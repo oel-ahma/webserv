@@ -26,6 +26,7 @@
 #include <map>
 #include <cstdlib>
 #include <poll.h>
+#include <fcntl.h>
 #include <cerrno>
 #include <ctime>
 #include <algorithm>

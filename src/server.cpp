@@ -60,6 +60,7 @@ void	Server::set_socket() {
 	if ((this->socket_server = socket(PF_INET, SOCK_STREAM, 0)) == ERROR)
 		throw std::runtime_error("socket(): " + (std::string)strerror(errno));
 	//Ajoute des options au socket
+	fcntl(this->socket_server, F_SETFL, O_NONBLOCK);
 	int optval = 1;
 	if (setsockopt(this->socket_server, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &optval, sizeof(optval)) == ERROR)
 		throw std::runtime_error("setsockopt(): " + (std::string)strerror(errno));
@@ -105,8 +106,14 @@ void	Server::add_client() {
 }
 
 bool Server::recv(int socket) {
-	memset(this->client_buff[socket].buff, 0, BUFF);
-	this->client_buff[socket].sizeBuff = ::recv(socket, this->client_buff[socket].buff, BUFF - 1, 0);
+	char buff[BUFF + 1];
+	int rd;
+
+	rd = ::recv(socket, buff, BUFF, 0);
+	buff[rd] = '\0';
+	this->client_buff[socket].setRequest(buff, rd);
+	memset(buff, 0, BUFF);
+	// std::cout << RED << "we have received: " << rd   << RESET << std::endl;
 	// std::cout << "recv for the client " << socket << ".\n" << this->client_buff[socket].sizeBuff <<std::endl;
 	if (this->client_buff[socket].sizeBuff == ERROR)
 	{
@@ -115,28 +122,18 @@ bool Server::recv(int socket) {
 		response_buff[socket].prepareResponse(&client_buff[socket], this->config);
 		return true;
 	}
-	else if (this->client_buff[socket].sizeBuff == 0)
+	else if (rd == 0 && this->client_buff[socket].getRequest().empty())
 		return false;
-	if (this->client_buff[socket].sizeBuff == BUFF) {
-		this->client_buff[socket].setStatusCode(413);
-	}
-	this->client_buff[socket].buff[this->client_buff[socket].sizeBuff] = '\0';
-	this->client_buff[socket].setRequest(this->client_buff[socket].buff, this->client_buff[socket].sizeBuff);
-	this->client_buff[socket].setStatusCode(200);
-	client_buff[socket].parsing();
-	response_buff[socket].prepareResponse(&client_buff[socket], this->config);
-	this->response_buff[socket].responseIsSet = true;
-	std::cout << GREEN << "The message was:" << socket  << "\n" << this->client_buff[socket].getRequest() << this->client_buff[socket].getStatusCode() << std::endl << "response is: \n" <<  this->response_buff[socket].getResponse() << RESET << std::endl; //DEGUB
+	// std::cout << GREEN << "The message was:" << socket  << "\n" << this->client_buff[socket].getRequest() << this->client_buff[socket].getStatusCode() << std::endl << "response is: \n" <<  this->response_buff[socket].getResponse() << RESET << std::endl; //DEGUB
 	return true;
 }
 
 bool Server::send(int socket) {
 	if (this->response_buff[socket].responseIsSet == false) {
-		std::cout << YELLOW << "here:"  << socket << "\n" << client_buff[socket].getRequest()<< RESET << std::endl;
-		std::cout << RED << "here:"  << socket << "\n" << client_buff[socket].getRequest()<< RESET << std::endl;
-		(void)socket;
+		client_buff[socket].parsing();
+		response_buff[socket].prepareResponse(&client_buff[socket], this->config);
 	}
-	else if (this->response_buff[socket].responseIsSet == true) { //TODO: else or if !!!!!
+	else if (this->response_buff[socket].responseIsSet == true && !this->client_buff[socket].getRequest().empty()) { //TODO: else or if !!!!!
 		std::cout << "We are sending this message:" << "\n" << this->response_buff[socket].getResponse() << "\n" << this->response_buff[socket].getResponse().size() << std::endl;
 		if (::send(socket, this->response_buff[socket].getResponse().c_str(), this->response_buff[socket].getResponse().size(), 0) == ERROR)
 			return false;
@@ -159,17 +156,13 @@ void	Server::routine() {
 		for (std::vector<struct pollfd>::iterator it = this->fds.begin(), ite = this->fds.end(); it != ite; ++it) {
 			if (it->revents & POLLIN) {
 				std::cout << "socket " << it->fd << " ----POLLIN---------" << std::endl;
-				std::cout << "revent before recv: " << it->revents << std::endl;
 				if (this->recv(it->fd) == false)
 					close(it);
-				it->events = POLLOUT;
-			std::cout << "revent after recv: " << it->revents << " " << POLLIN << std::endl;
-
+				// it->events = POLLOUT;
 			}
 			else if (it->revents & POLLOUT) {
 				std::cout << "socket " << it->fd << " ----POLLOUT---------" << std::endl;
 				if (this->send(it->fd) == true) {
-					std::cout << "socket " << it->fd << " ----close dans POLLOUT---------" << std::endl;
 					close(it);
 					it->events = POLLIN;
 					continue;
@@ -188,9 +181,9 @@ void	Server::routine() {
 }
 
 void Server::close(std::vector<struct pollfd>::iterator it) {
-	std::cout << "Client " << it->fd << " disconnected" << std::endl;
 	this->client_buff.erase(it->fd);
 	this->response_buff.erase(it->fd);
 	this->fds.erase(it);
 	::close(it->fd);
+	std::cout << "Client " << it->fd << " disconnected" << std::endl;
 }
