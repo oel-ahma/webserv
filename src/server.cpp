@@ -90,7 +90,7 @@ void	Server::listen_server() {
 	//Ajout du socket_server comme premier element du vector
 	fds.push_back(fd);
 	this->ready = true;
-	std::cout << "Server up. Socket: " << fds[0].fd << std::endl;
+	std::cout << "Server up. " << this->config->getListen().host << ":" << this->config->getListen().port << std::endl;
 }
 
 // Lorsqu'un client se connecte au server, il faut set la structure pollfd pour ensuite l'ajouter au vector
@@ -104,7 +104,7 @@ void	Server::add_client() {
 	pfd.events = POLLIN | POLLOUT | POLLRDHUP | POLLERR;
 	fds.push_back(pfd);
 	this->client_buff[pfd.fd].ClientSocket = pfd.fd;
-	std::cout << "Client " << pfd.fd << " connected.\n" << std::endl;
+	// std::cout << "Client " << pfd.fd << " connected.\n" << std::endl;
 }
 
 bool Server::recv(int socket) {
@@ -138,7 +138,9 @@ bool Server::send(int socket) {
 			for (std::vector<ConfigParse>::const_iterator it = allConfig->_servers.begin(); it != allConfig->_servers.end(); it++) {
 				if (ifStringInVector(client_buff[socket].getHeaders()["Host"], (*it).getServerName()))
 				{
+					if (this->config->getListen().host == (*it).getListen().host && this->config->getListen().port == (*it).getListen().port)
 					response_buff[socket].prepareResponse(&client_buff[socket], &(*it));
+
 					break;
 				}
 			}
@@ -200,5 +202,5 @@ void Server::close(std::vector<struct pollfd>::iterator it) {
 	this->response_buff.erase(it->fd);
 	this->fds.erase(it);
 	::close(it->fd);
-	std::cout << "Client " << it->fd << " disconnected" << std::endl;
+	// std::cout << "Client " << it->fd << " disconnected" << std::endl;
 }
